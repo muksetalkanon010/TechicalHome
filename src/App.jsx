@@ -451,9 +451,9 @@ export default function App() {
             const rawList = Array.isArray(parsed.instructors) ? parsed.instructors : [];
             const cleanList = rawList.filter(inst => {
               const lowName = (inst.name || '').toLowerCase();
-              return !["tahmid", "sanjid", "tofayel", "nazmuddin", "jaidul", "sk tasnim", "tasnim ferdaus"].some(zn => lowName.includes(zn));
+              return !["tahmid", "sanjid", "tofayel", "nazmuddin", "jaidul", "sk tasnim", "tasnim ferdaus", "as sami", "sami islam", "mukset"].some(zn => lowName.includes(zn));
             });
-            if (cleanList.length > 0) {
+            if (cleanList.some(i => (i.name || '').toLowerCase().includes('moniruzzaman'))) {
               return cleanList;
             }
             return initialData.instructors;
@@ -619,14 +619,14 @@ export default function App() {
           }
         }
         if (Array.isArray(parsed.instructors)) {
-          const ZENITH_INSTRUCTOR_NAMES = [
-            "tahmid", "sanjid", "tofayel", "nazmuddin", "jaidul", "sk tasnim", "tasnim ferdaus"
+          const PURGED_INSTRUCTOR_NAMES = [
+            "tahmid", "sanjid", "tofayel", "nazmuddin", "jaidul", "sk tasnim", "tasnim ferdaus", "as sami", "sami islam", "mukset"
           ];
           let purgedInst = parsed.instructors.filter(inst => {
             const lowName = (inst.name || '').toLowerCase();
-            return !ZENITH_INSTRUCTOR_NAMES.some(zn => lowName.includes(zn));
+            return !PURGED_INSTRUCTOR_NAMES.some(zn => lowName.includes(zn));
           });
-          if (purgedInst.length === 0) {
+          if (purgedInst.length === 0 || !purgedInst.some(i => (i.name || '').toLowerCase().includes('moniruzzaman'))) {
             purgedInst = initialData.instructors;
             modified = true;
           }

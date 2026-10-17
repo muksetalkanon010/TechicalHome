@@ -68,21 +68,12 @@ export const homeCoursesData = [
 export const instructorsData = [
   {
     id: 1,
-    name: "As Sami Islam",
-    badge: "",
-    designation: "",
-    bio: "Founder & Instructor",
-    image: "/instructors/as_sami_islam.jpg",
-    yt: ""
-  },
-  {
-    id: 2,
-    name: "Mukset Al Kanon",
-    badge: "",
-    designation: "",
-    bio: "Founder",
-    image: "/instructors/mukset_al_kanon.jpg",
-    yt: ""
+    name: "Moniruzzaman Khan",
+    badge: "FOUNDER & CEO",
+    designation: "FOUNDER & CEO",
+    bio: "Founder & CEO, Technical Home",
+    image: "/instructors/moniruzzaman_khan.png",
+    yt: "https://www.youtube.com/channel/UC1XpmoV-Phk1q1N5D2PTd0g"
   }
 ];
 

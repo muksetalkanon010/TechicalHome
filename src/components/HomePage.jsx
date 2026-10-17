@@ -1162,11 +1162,11 @@ export default function HomePage({
               </div>
 
               {/* Horizontal Track Cards */}
-              <div className="flex gap-5 overflow-x-auto pb-4 scrollbar-hide">
+              <div className={`flex gap-5 overflow-x-auto pb-4 scrollbar-hide ${instructors.length === 1 ? 'sm:justify-center' : ''}`}>
                 {instructors.map((inst, idx) => (
                   <div 
                     key={inst.id || `${inst.name}-${idx}`}
-                    className={`flex-shrink-0 w-60 sm:w-64 rounded-2xl overflow-hidden transition-all duration-300 group cursor-pointer ${
+                    className={`flex-shrink-0 ${instructors.length === 1 ? 'w-64 sm:w-72' : 'w-60 sm:w-64'} rounded-2xl overflow-hidden transition-all duration-300 group cursor-pointer ${
                       isDark 
                         ? 'bg-[#0b172a]/90 border border-[#2563eb]/20 hover:border-[#2563eb]/60 shadow-[0_8px_30px_rgba(0,0,0,0.5)]' 
                         : 'bg-white border border-[#e5e7eb] hover:shadow-xl shadow-sm'

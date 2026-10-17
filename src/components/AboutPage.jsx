@@ -90,14 +90,22 @@ export default function AboutPage({
                 <span className={`text-[10px] font-bold uppercase tracking-[0.22em] block mb-3 ${
                   isDark ? 'text-[#38bdf8]' : 'text-[#2563eb]'
                 }`}>
-                  Our Faculty
+                  {instructors.length === 1 ? 'Leadership & Team' : 'Our Team'}
                 </span>
                 <h2 className={`text-3xl md:text-4xl font-black ${isDark ? 'text-white' : 'text-[#111827]'}`}>
-                  Meet Our <span className={isDark ? 'text-[#38bdf8]' : 'text-[#2563eb]'}>Expert Teachers</span>
+                  {instructors.length === 1 ? (
+                    <>Meet Our <span className={isDark ? 'text-[#38bdf8]' : 'text-[#2563eb]'}>Founder & CEO</span></>
+                  ) : (
+                    <>Meet Our <span className={isDark ? 'text-[#38bdf8]' : 'text-[#2563eb]'}>Team</span></>
+                  )}
                 </h2>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+              <div className={`grid gap-6 ${
+                instructors.length === 1 
+                  ? 'max-w-xs sm:max-w-sm mx-auto' 
+                  : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5'
+              }`}>
                 {instructors.map((t, idx) => (
                   <div 
                     key={t.id || `${t.name}-${idx}`}
