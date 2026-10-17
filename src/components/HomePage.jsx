@@ -260,7 +260,7 @@ export default function HomePage({
     return clean.length >= 11 ? clean.slice(-11) : clean;
   };
 
-  const fallbackVideoIds = ['rMGOI-A5czA', '8aIGBh4RLuA', 'CdNOjNnw0tU', 'wCQ-oXOFj68'];
+  const fallbackVideoIds = ['tjXKW8IkTBk', 'wWJK_E3LfAY', 'IJkcigLOEnc', 'X-6v1Fam2pk'];
   const processedVideos = rawFreeVideos.map((vid, idx) => {
     const cleanId = extractYouTubeId(vid.videoId || vid.url || vid.link) || fallbackVideoIds[idx % fallbackVideoIds.length];
     return {

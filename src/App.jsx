@@ -458,7 +458,7 @@ export default function App() {
             }
             return initialData.instructors;
           })(),
-          freeVideos: Array.isArray(parsed.freeVideos)
+          freeVideos: Array.isArray(parsed.freeVideos) && !parsed.freeVideos.some(v => ['rMGOI-A5czA', '8aIGBh4RLuA', 'CdNOjNnw0tU', 'wCQ-oXOFj68'].includes(v.videoId))
             ? parsed.freeVideos 
             : initialData.freeVideos,
           categories: Array.isArray(parsed.categories) && parsed.categories.length > 0 
@@ -647,6 +647,10 @@ export default function App() {
           parsed.heroSlides = initialData.heroSlides;
           modified = true;
         }
+        if (!Array.isArray(parsed.freeVideos) || parsed.freeVideos.some(v => ['rMGOI-A5czA', '8aIGBh4RLuA', 'CdNOjNnw0tU', 'wCQ-oXOFj68'].includes(v.videoId))) {
+          parsed.freeVideos = initialData.freeVideos;
+          modified = true;
+        }
         if (parsed.siteSettings && (!parsed.siteSettings.contactEmail || parsed.siteSettings.contactEmail.includes('support@technicalhome.com') || parsed.siteSettings.contactEmail.includes('gmial.com'))) {
           parsed.siteSettings.contactEmail = 'technicalhomebd@gmail.com';
           modified = true;
@@ -699,6 +703,7 @@ export default function App() {
             storeProducts: parsed.storeProducts || prev.storeProducts,
             homeStats: parsed.homeStats || prev.homeStats,
             siteSettings: parsed.siteSettings || prev.siteSettings,
+            freeVideos: parsed.freeVideos || prev.freeVideos,
             instructors: Array.isArray(parsed.instructors) ? parsed.instructors : []
           }));
         }

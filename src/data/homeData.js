@@ -89,27 +89,27 @@ export const instructorsData = [
 export const freeVideosData = [
   {
     id: 1,
-    videoId: "rMGOI-A5czA",
-    title: "টপাররা কোনোদিনও এই মেথড কারো সাথে শেয়ার করবেনা | Admission Hack",
-    desc: "টপাররা কোনোদিনও এই মেথড কারো সাথে শেয়ার করবেনা | Admission Hack"
+    videoId: "tjXKW8IkTBk",
+    title: "ভর্তি পরীক্ষা প্রস্তুতি, তথ্য কণিকা-০৩💎",
+    desc: "ভর্তি পরীক্ষা প্রস্তুতি, তথ্য কণিকা-০৩ | Technical Home"
   },
   {
     id: 2,
-    videoId: "8aIGBh4RLuA",
-    title: "অ্যাডমিশন টাইমে Topper-রা যেভাবে গ্যাপ পড়ে যাওয়া পড়াগুলো Fillup করে",
-    desc: "অ্যাডমিশন টাইমে Topper-রা যেভাবে গ্যাপ পড়ে যাওয়া পড়াগুলো Fillup করে"
+    videoId: "wWJK_E3LfAY",
+    title: "ভর্তি পরীক্ষা প্রস্তুতি, তথ্য কণিকা-০৪💎",
+    desc: "ভর্তি পরীক্ষা প্রস্তুতি, তথ্য কণিকা-০৪ | Technical Home"
   },
   {
     id: 3,
-    videoId: "CdNOjNnw0tU",
-    title: "চান্স পাওয়ার ক্ষেত্রে আদেও কি কোচিংয়ের মার্ক Matter করে? | Admission Coaching | As Sami Islam",
-    desc: "চান্স পাওয়ার ক্ষেত্রে আদেও কি কোচিংয়ের মার্ক Matter করে? | Admission Coaching | As Sami Islam"
+    videoId: "IJkcigLOEnc",
+    title: "বেসিক ইলেকট্রিসিটি, অতি-সংক্ষিপ্ত সাজেশন ১০০% কমন💎",
+    desc: "বেসিক ইলেকট্রিসিটি, অতি-সংক্ষিপ্ত সাজেশন ১০০% কমন | Technical Home"
   },
   {
     id: 4,
-    videoId: "wCQ-oXOFj68",
-    title: "HSC 26- এই ট্রিকগুলো জানলে Retina-র সবগুলো ডেইলিতে ৪৫+মার্ক থাকবে।",
-    desc: "HSC 26- এই ট্রিকগুলো জানলে Retina-র সবগুলো ডেইলিতে ৪৫+মার্ক থাকবে।"
+    videoId: "X-6v1Fam2pk",
+    title: "বিজনেস কমিউনিকেশন, রচনামূলক ১০০% কমন সাজেশন💎",
+    desc: "বিজনেস কমিউনিকেশন, রচনামূলক ১০০% কমন সাজেশন | Technical Home"
   }
 ];
 
