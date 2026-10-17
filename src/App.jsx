@@ -412,7 +412,7 @@ export default function App() {
           announcement: parsed.announcement || initialData.announcement,
           sectionTexts: { ...initialData.sectionTexts, ...(parsed.sectionTexts || {}) },
           whyChooseUs: Array.isArray(parsed.whyChooseUs) && parsed.whyChooseUs.length > 0 ? parsed.whyChooseUs : initialData.whyChooseUs,
-          heroSlides: (Array.isArray(parsed.heroSlides) && parsed.heroSlides.length > 0) 
+          heroSlides: (Array.isArray(parsed.heroSlides) && parsed.heroSlides.length > 0 && !parsed.heroSlides.some(s => s.image?.includes('slide-physics') || s.image?.includes('slide-master-english') || s.image?.includes('extra-info') || s.image?.includes('noun-day1'))) 
             ? parsed.heroSlides 
             : initialData.heroSlides,
           homeStats: (Array.isArray(parsed.homeStats) && parsed.homeStats.length > 0 && !parsed.homeStats.some(s => s.value === '3000+' || s.value === '70000+')) 
@@ -643,7 +643,7 @@ export default function App() {
           parsed.homeStats = initialData.homeStats;
           modified = true;
         }
-        if (!Array.isArray(parsed.heroSlides) || parsed.heroSlides.length === 0 || parsed.heroSlides.some(s => s.image?.includes('extra-info') || s.image?.includes('noun-day1'))) {
+        if (!Array.isArray(parsed.heroSlides) || parsed.heroSlides.length === 0 || parsed.heroSlides.some(s => s.image?.includes('slide-physics') || s.image?.includes('slide-master-english') || s.image?.includes('extra-info') || s.image?.includes('noun-day1'))) {
           parsed.heroSlides = initialData.heroSlides;
           modified = true;
         }
@@ -704,6 +704,7 @@ export default function App() {
             homeStats: parsed.homeStats || prev.homeStats,
             siteSettings: parsed.siteSettings || prev.siteSettings,
             freeVideos: parsed.freeVideos || prev.freeVideos,
+            heroSlides: parsed.heroSlides || prev.heroSlides,
             instructors: Array.isArray(parsed.instructors) ? parsed.instructors : []
           }));
         }

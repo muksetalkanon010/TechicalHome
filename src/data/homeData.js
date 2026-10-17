@@ -1,15 +1,22 @@
 export const heroSlidesData = [
   {
     id: 1,
-    title: "পদার্থবিজ্ঞান Finishing Touch Series - ১৫/১৫ পেতে এটুকুই যথেষ্ট",
-    image: "/slides/slide-physics-finishing-touch.png",
-    link: "/courses/physics-finishing-touch-series",
+    title: "তথ্য কণিকা-৩ ভর্তি পরীক্ষা প্রস্তুতি | Moniruzzaman Khan",
+    image: "/slides/slide_tottho_konika_3.png",
+    link: "/courses",
     type: "course"
   },
   {
     id: 2,
-    title: "৩০ দিনে Master English শেষ করার মিশন",
-    image: "/slides/slide-master-english-30days.png",
+    title: "তথ্য কণিকা-৪ ভর্তি পরীক্ষা প্রস্তুতি | Moniruzzaman Khan",
+    image: "/slides/slide_tottho_konika_4.png",
+    link: "/courses",
+    type: "course"
+  },
+  {
+    id: 3,
+    title: "প্রিয় সাবজেক্ট কোনটি? | Moniruzzaman Khan",
+    image: "/slides/slide_priyo_subject_konta.png",
     link: "/courses",
     type: "course"
   }
