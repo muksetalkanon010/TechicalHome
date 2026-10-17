@@ -96,12 +96,12 @@ export default function PreloaderScreen({ onFinish, siteSettings = {} }) {
         <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
       </div>
 
-      {/* Center Atmospheric Red Glow */}
+      {/* Center Atmospheric Deep Navy Aura */}
       <div 
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[540px] h-[360px] rounded-full pointer-events-none z-[1]"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full pointer-events-none z-[1]"
         style={{
-          background: 'radial-gradient(ellipse at center, rgba(37, 99, 235, 0.45) 0%, rgba(180, 15, 40, 0.22) 40%, transparent 75%)',
-          filter: 'blur(50px)'
+          background: 'radial-gradient(ellipse at center, rgba(37, 99, 235, 0.35) 0%, rgba(14, 165, 233, 0.12) 40%, rgba(3, 7, 18, 0) 75%)',
+          filter: 'blur(60px)'
         }}
       />
 
