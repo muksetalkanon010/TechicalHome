@@ -643,7 +643,7 @@ export default function App() {
           parsed.homeStats = initialData.homeStats;
           modified = true;
         }
-        if (!Array.isArray(parsed.heroSlides) || parsed.heroSlides.length !== 2 || parsed.heroSlides.some(s => s.image?.includes('extra-info') || s.image?.includes('noun-day1'))) {
+        if (!Array.isArray(parsed.heroSlides) || parsed.heroSlides.length === 0 || parsed.heroSlides.some(s => s.image?.includes('extra-info') || s.image?.includes('noun-day1'))) {
           parsed.heroSlides = initialData.heroSlides;
           modified = true;
         }
