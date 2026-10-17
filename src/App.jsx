@@ -412,32 +412,15 @@ export default function App() {
           announcement: parsed.announcement || initialData.announcement,
           sectionTexts: { ...initialData.sectionTexts, ...(parsed.sectionTexts || {}) },
           whyChooseUs: Array.isArray(parsed.whyChooseUs) && parsed.whyChooseUs.length > 0 ? parsed.whyChooseUs : initialData.whyChooseUs,
-          heroSlides: (Array.isArray(parsed.heroSlides) && parsed.heroSlides.length > 0 && !parsed.heroSlides.some(s => s.image?.includes('slide-physics') || s.image?.includes('slide-master-english') || s.image?.includes('extra-info') || s.image?.includes('noun-day1'))) 
+          heroSlides: (Array.isArray(parsed.heroSlides) && parsed.heroSlides.length > 0) 
             ? parsed.heroSlides 
             : initialData.heroSlides,
-          homeStats: (Array.isArray(parsed.homeStats) && parsed.homeStats.length > 0 && !parsed.homeStats.some(s => s.value === '3000+' || s.value === '70000+')) 
+          homeStats: (Array.isArray(parsed.homeStats) && parsed.homeStats.length > 0) 
             ? parsed.homeStats 
             : initialData.homeStats,
           courses: (() => {
-            if (Array.isArray(parsed.courses)) {
-              return parsed.courses
-                .filter(c => !isZenithCopiedCourse(c))
-                .map(c => {
-                  let mapped = c.category === 'University A Unit' ? { ...c, category: 'Free' } : c;
-                  const initialMatch = initialData.courses.find(initC => initC.id === c.id || initC.slug === c.slug);
-                  if (initialMatch) {
-                    if (!mapped.curriculum || !Array.isArray(mapped.curriculum) || mapped.curriculum.length === 0) {
-                      mapped = { ...mapped, curriculum: initialMatch.curriculum };
-                    }
-                    if (!mapped.features || !Array.isArray(mapped.features) || mapped.features.length === 0) {
-                      mapped = { ...mapped, features: initialMatch.features };
-                    }
-                    if (!mapped.studentsCount) {
-                      mapped = { ...mapped, studentsCount: initialMatch.studentsCount };
-                    }
-                  }
-                  return mapped;
-                });
+            if (Array.isArray(parsed.courses) && parsed.courses.length > 0) {
+              return parsed.courses.filter(c => !isZenithCopiedCourse(c));
             }
             return initialData.courses;
           })(),
@@ -448,17 +431,12 @@ export default function App() {
             ? parsed.examBatches
             : (initialData.examBatches || EXAM_CATEGORIES_METADATA),
           instructors: (() => {
-            const rawList = Array.isArray(parsed.instructors) ? parsed.instructors : [];
-            const cleanList = rawList.filter(inst => {
-              const lowName = (inst.name || '').toLowerCase();
-              return !["tahmid", "sanjid", "tofayel", "nazmuddin", "jaidul", "sk tasnim", "tasnim ferdaus", "as sami", "sami islam", "mukset"].some(zn => lowName.includes(zn));
-            });
-            if (cleanList.some(i => (i.name || '').toLowerCase().includes('moniruzzaman'))) {
-              return cleanList;
+            if (Array.isArray(parsed.instructors) && parsed.instructors.length > 0) {
+              return parsed.instructors;
             }
             return initialData.instructors;
           })(),
-          freeVideos: Array.isArray(parsed.freeVideos) && !parsed.freeVideos.some(v => ['rMGOI-A5czA', '8aIGBh4RLuA', 'CdNOjNnw0tU', 'wCQ-oXOFj68'].includes(v.videoId))
+          freeVideos: Array.isArray(parsed.freeVideos) && parsed.freeVideos.length > 0
             ? parsed.freeVideos 
             : initialData.freeVideos,
           categories: Array.isArray(parsed.categories) && parsed.categories.length > 0 
@@ -764,10 +742,6 @@ export default function App() {
       if (Array.isArray(sanitized.homeStats) && sanitized.homeStats.some(s => s.value === '3000+' || s.value === '70000+')) {
         sanitized.homeStats = initialData.homeStats;
       }
-      if (Array.isArray(sanitized.heroSlides) && sanitized.heroSlides.some(s => s.image?.includes('extra-info') || s.image?.includes('noun-day1'))) {
-        sanitized.heroSlides = initialData.heroSlides;
-      }
-
       // Clean instructors resolution: filter Zenith legacy faculty and respect user edits
       const ZENITH_INSTRUCTOR_NAMES = [
         "tahmid", "sanjid", "tofayel", "nazmuddin", "jaidul", "sk tasnim", "tasnim ferdaus"
@@ -783,15 +757,7 @@ export default function App() {
         ? cleanCloudInstructors
         : (cleanPrevInstructors.length > 0 ? cleanPrevInstructors : initialData.instructors);
 
-      // Guarantee "As Sami Islam" is at index 0 (first on website)
-      const samiIdx = resolvedInstructors.findIndex(i => (i.name || '').toLowerCase().includes('as sami'));
-      if (samiIdx > 0) {
-        resolvedInstructors = [...resolvedInstructors];
-        const [samiItem] = resolvedInstructors.splice(samiIdx, 1);
-        resolvedInstructors.unshift(samiItem);
-      }
-
-      // Smart course resolution: merge curriculum so newly added classes/lessons are never lost
+      // Smart course resolution: merge curriculum & preserve active/live status
       const countLessons = (cur) => {
         if (!Array.isArray(cur)) return 0;
         return cur.reduce((acc, sec) => {
@@ -817,14 +783,14 @@ export default function App() {
           const localLessons = countLessons(localCourse.curriculum);
           const cloudLessons = countLessons(cloudCourse.curriculum);
 
-          // If local course has richer curriculum or cloud curriculum is empty, preserve local curriculum
-          if (localLessons > cloudLessons) {
-            return {
-              ...cloudCourse,
-              curriculum: localCourse.curriculum
-            };
-          }
-          return cloudCourse;
+          return {
+            ...cloudCourse,
+            // 100% preserve user toggle for Live / Off
+            isActive: localCourse.isActive !== undefined ? localCourse.isActive : cloudCourse.isActive,
+            curriculum: (localLessons >= cloudLessons && localLessons > 0)
+              ? localCourse.curriculum
+              : cloudCourse.curriculum
+          };
         });
 
         // Ensure any local-only courses (e.g. freshly created custom courses) are preserved

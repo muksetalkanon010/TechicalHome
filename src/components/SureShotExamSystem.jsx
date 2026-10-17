@@ -551,7 +551,6 @@ export default function SureShotExamSystem({
   const [customDurationMins, setCustomDurationMins] = useState(null);
   const [showCustomDurationPicker, setShowCustomDurationPicker] = useState(false);
   const [showSeconds, setShowSeconds] = useState(true);
-  const [isSecondTimer, setIsSecondTimer] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [examResult, setExamResult] = useState(() => {
     try {
@@ -826,8 +825,6 @@ export default function SureShotExamSystem({
       sessionStorage.setItem('th_active_exam_data', JSON.stringify(initialExamData));
     } catch (e) {}
 
-    setIsSecondTimer(false);
-
     setCustomDurationMins(null);
     setShowCustomDurationPicker(false);
     setTimeLeft(durationMins * 60);
@@ -887,6 +884,9 @@ export default function SureShotExamSystem({
     if (questions.length === 0 && selectedExamMeta?.questions && selectedExamMeta.questions.length > 0) {
       questions = selectedExamMeta.questions;
     }
+    if (questions.length === 0 && initialExam?.questions && initialExam.questions.length > 0) {
+      questions = initialExam.questions;
+    }
     if (questions.length === 0 && selectedExamMeta) {
       setIsLoadingExam(true);
       try {
@@ -911,6 +911,12 @@ export default function SureShotExamSystem({
       return;
     }
 
+    setExamData(prev => ({
+      ...(prev || {}),
+      ...(selectedExamMeta || {}),
+      questions
+    }));
+
     setExamMode(mode);
     setUserAnswers({});
     try {
@@ -924,7 +930,9 @@ export default function SureShotExamSystem({
     const activeDur = customDurationMins || examData?.duration_minutes || selectedExamMeta?.durationMinutes || 40;
     setTimeLeft(activeDur * 60);
     examStartTimeRef.current = Date.now();
-    updateExamStep('exam_live', selectedCategory, selectedExamMeta?.id);
+    const activeCat = selectedCategory || selectedExamMeta?.category || examData?.category || 'sureshot';
+    const activeExamId = selectedExamMeta?.id || examData?.exam_id || initialExam?.id;
+    updateExamStep('exam_live', activeCat, activeExamId);
   };
 
   // Select Option during Exam
@@ -998,139 +1006,168 @@ export default function SureShotExamSystem({
 
   // Calculate Score and Finish
   const calculateAndFinishExam = () => {
-    if (!examData || isSubmitted) return;
-    setIsSubmitted(true);
+    if (step === 'exam_result') return;
 
-    let correct = 0;
-    let wrong = 0;
-    let skipped = 0;
-
-    examData.questions.forEach((q, idx) => {
-      const selected = getUserAnswer(userAnswers, q, idx);
-      const isAns = selected !== undefined && selected !== null && selected !== '' && !isNaN(Number(selected));
-      const targetCorrect = getQuestionCorrectIndex(q);
-      if (!isAns) {
-        skipped++;
-      } else if (Number(selected) === Number(targetCorrect)) {
-        correct++;
-      } else {
-        wrong++;
-      }
-    });
-
-    const rawNegVal = examData.negative_mark !== undefined ? examData.negative_mark : 0.25;
-    let parsedNeg = typeof rawNegVal === 'string' 
-      ? parseFloat(rawNegVal.replace(/[০-৯]/g, d => ({ '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4', '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9' })[d]))
-      : Number(rawNegVal);
-    if (isNaN(parsedNeg) || parsedNeg < 0) parsedNeg = 0;
-    if (parsedNeg >= 1) parsedNeg = parsedNeg / 100; // e.g. 25 becomes 0.25
-
-    const negPerWrong = parsedNeg;
-    const wrongPenalty = +(wrong * negPerWrong).toFixed(2);
-    const secondTimerPenalty = isSecondTimer ? 3 : 0;
-    const totalPenalty = +(wrongPenalty + secondTimerPenalty).toFixed(2);
-    const score = +(correct - totalPenalty).toFixed(2);
-    const passMarks = Math.round(examData.questions.length * 0.4);
-    const percentage = Math.max(0, Math.round((Math.max(0, score) / examData.questions.length) * 100));
-    const isPassed = score >= passMarks;
-
-    const activeDur = customDurationMins || examData?.duration_minutes || selectedExamMeta?.durationMinutes || 40;
-    const totalDurationSecs = activeDur * 60;
-    const elapsedSecs = examStartTimeRef.current
-      ? Math.min(totalDurationSecs, Math.max(1, Math.round((Date.now() - examStartTimeRef.current) / 1000)))
-      : Math.max(1, totalDurationSecs - (timeLeft || 0));
-
-    const resultObj = {
-      examId: selectedExamMeta?.id || examData?.exam_id || Date.now().toString(),
-      title: examData.title,
-      category: examData.category || selectedCategory,
-      categoryName: examData.categoryName,
-      subject: examData.subject,
-      date: new Date().toLocaleDateString('bn-BD', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-      totalQuestions: examData.questions.length,
-      totalPossible: examData.total_marks || examData.questions.length,
-      correct,
-      wrong,
-      skipped,
-      negPerWrong,
-      wrongPenalty,
-      isSecondTimer,
-      secondTimerPenalty,
-      totalPenalty,
-      finalScore: score,
-      score: score,
-      timeTakenSeconds: elapsedSecs,
-      percentage,
-      isPassed,
-      userAnswers: { ...userAnswers },
-      questions: examData.questions
-    };
-
-    setExamResult(resultObj);
-    if (onExamComplete) {
-      try {
-        onExamComplete(resultObj);
-      } catch (err) {
-        console.error("onExamComplete callback error:", err);
-      }
-    }
     try {
-      sessionStorage.setItem('th_active_exam_result', JSON.stringify(resultObj));
-      sessionStorage.setItem('th_active_user_answers', JSON.stringify(userAnswers));
-      sessionStorage.setItem('th_active_exam_data', JSON.stringify(examData));
-      if (selectedExamMeta) {
-        sessionStorage.setItem('th_active_exam_meta', JSON.stringify(selectedExamMeta));
-      }
-      localStorage.setItem(`th_result_${resultObj.examId}`, JSON.stringify(resultObj));
-      localStorage.setItem('th_latest_result', JSON.stringify(resultObj));
-    } catch (e) {}
+      setIsSubmitted(true);
 
-    // Save to Exam History in localStorage
-    try {
-      const updatedHistory = [resultObj, ...examHistory.slice(0, 49)];
-      setExamHistory(updatedHistory);
-      localStorage.setItem('th_exam_history', JSON.stringify(updatedHistory));
-    } catch (e) {
-      console.warn("Failed to save history:", e);
-    }
+      const activeExam = examData || selectedExamMeta || initialExam || {};
+      const questionsToScore = (examData?.questions && Array.isArray(examData.questions) && examData.questions.length > 0)
+        ? examData.questions
+        : ((selectedExamMeta?.questions && Array.isArray(selectedExamMeta.questions) && selectedExamMeta.questions.length > 0)
+            ? selectedExamMeta.questions
+            : ((initialExam?.questions && Array.isArray(initialExam.questions) && initialExam.questions.length > 0)
+                ? initialExam.questions
+                : (() => {
+                    try {
+                      const saved = sessionStorage.getItem('th_active_exam_data');
+                      if (saved) {
+                        const p = JSON.parse(saved);
+                        if (Array.isArray(p?.questions) && p.questions.length > 0) return p.questions;
+                      }
+                    } catch(e) {}
+                    return [];
+                  })()));
 
-    // Save to Global Live Leaderboard
-    try {
-      recordQuizSubmission({
-        student: currentUser || { id: 'guest_student', name: 'Student' },
-        course: { 
-          id: selectedCategory || examData?.category || 'sureshot', 
-          title: examData?.categoryName || selectedCategory || 'Exam Batch' 
-        },
-        lesson: { 
-          id: resultObj.examId, 
-          title: resultObj.title || 'Exam' 
-        },
-        quiz: examData,
-        result: resultObj,
-        timeTakenSeconds: elapsedSecs
+      let correct = 0;
+      let wrong = 0;
+      let skipped = 0;
+
+      questionsToScore.forEach((q, idx) => {
+        const selected = getUserAnswer(userAnswers, q, idx);
+        const isAns = selected !== undefined && selected !== null && selected !== '' && !isNaN(Number(selected));
+        const targetCorrect = getQuestionCorrectIndex(q);
+        if (!isAns) {
+          skipped++;
+        } else if (Number(selected) === Number(targetCorrect)) {
+          correct++;
+        } else {
+          wrong++;
+        }
       });
-    } catch (e) {
-      console.warn("[SureShot] Leaderboard submission notice:", e);
-    }
 
-    const catToUse = selectedCategory || examData?.category || 'sureshot';
-    const examIdToUse = selectedExamMeta?.id || resultObj.examId;
-    setSolutionFilter('all');
-    updateExamStep('exam_result', catToUse, examIdToUse);
-    if (!isCourseQuiz) {
+      const rawNegVal = activeExam.negative_mark !== undefined 
+        ? activeExam.negative_mark 
+        : (activeExam.negativeMark !== undefined ? activeExam.negativeMark : 0.25);
+      let parsedNeg = typeof rawNegVal === 'string' 
+        ? parseFloat(rawNegVal.replace(/[০-৯]/g, d => ({ '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4', '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9' })[d]))
+        : Number(rawNegVal);
+      if (isNaN(parsedNeg) || parsedNeg < 0) parsedNeg = 0;
+      if (parsedNeg >= 1) parsedNeg = parsedNeg / 100; // e.g. 25 becomes 0.25
+
+      const negPerWrong = parsedNeg;
+      const wrongPenalty = +(wrong * negPerWrong).toFixed(2);
+      const totalPenalty = wrongPenalty;
+      const score = +(correct - totalPenalty).toFixed(2);
+      const totalQCount = Math.max(1, questionsToScore.length);
+      const passMarks = Math.round(totalQCount * 0.4);
+      const percentage = Math.max(0, Math.round((Math.max(0, score) / totalQCount) * 100));
+      const isPassed = score >= passMarks;
+
+      const activeDur = customDurationMins || activeExam?.duration_minutes || activeExam?.durationMinutes || selectedExamMeta?.durationMinutes || 40;
+      const totalDurationSecs = activeDur * 60;
+      const elapsedSecs = examStartTimeRef.current
+        ? Math.min(totalDurationSecs, Math.max(1, Math.round((Date.now() - examStartTimeRef.current) / 1000)))
+        : Math.max(1, totalDurationSecs - (timeLeft || 0));
+
+      const resultObj = {
+        examId: selectedExamMeta?.id || activeExam?.exam_id || activeExam?.id || Date.now().toString(),
+        title: activeExam.title || selectedExamMeta?.title || 'Exam',
+        category: activeExam.category || selectedCategory || 'sureshot',
+        categoryName: activeExam.categoryName || selectedCategoryDetail?.title || 'SureShot Exam Batch',
+        subject: activeExam.subject || 'All Subjects',
+        date: new Date().toLocaleDateString('bn-BD', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        totalQuestions: questionsToScore.length,
+        totalPossible: activeExam.total_marks || activeExam.totalMarks || questionsToScore.length,
+        correct,
+        wrong,
+        skipped,
+        negPerWrong,
+        wrongPenalty,
+        totalPenalty,
+        finalScore: score,
+        score: score,
+        timeTakenSeconds: elapsedSecs,
+        percentage,
+        isPassed,
+        userAnswers: { ...userAnswers },
+        questions: questionsToScore
+      };
+
+      setExamResult(resultObj);
+      if (onExamComplete) {
+        try {
+          onExamComplete(resultObj);
+        } catch (err) {
+          console.error("onExamComplete callback error:", err);
+        }
+      }
       try {
-        window.history.replaceState(null, '', `/exams?category=${catToUse}&step=exam_result&exam=${examIdToUse}`);
+        sessionStorage.setItem('th_active_exam_result', JSON.stringify(resultObj));
+        sessionStorage.setItem('th_active_user_answers', JSON.stringify(userAnswers));
+        sessionStorage.setItem('th_active_exam_data', JSON.stringify({ ...activeExam, questions: questionsToScore }));
+        if (selectedExamMeta) {
+          sessionStorage.setItem('th_active_exam_meta', JSON.stringify(selectedExamMeta));
+        }
+        localStorage.setItem(`th_result_${resultObj.examId}`, JSON.stringify(resultObj));
+        localStorage.setItem('th_latest_result', JSON.stringify(resultObj));
       } catch (e) {}
-    }
 
-    if (isPassed) {
+      // Save to Exam History in localStorage
       try {
-        confetti({
-          particleCount: 120,
-          spread: 80,
-          origin: { y: 0.6 }
-        });
+        const updatedHistory = [resultObj, ...examHistory.filter(h => h.examId !== resultObj.examId || h.date !== resultObj.date).slice(0, 49)];
+        setExamHistory(updatedHistory);
+        localStorage.setItem('th_exam_history', JSON.stringify(updatedHistory));
+      } catch (e) {
+        console.warn("Failed to save history:", e);
+      }
+
+      // Save to Global Live Leaderboard
+      try {
+        recordQuizSubmission({
+          student: currentUser || { id: 'guest_student', name: 'Student' },
+          course: { 
+            id: selectedCategory || activeExam?.category || 'sureshot', 
+            title: activeExam?.categoryName || selectedCategory || 'Exam Batch' 
+          },
+          lesson: { 
+            id: resultObj.examId, 
+            title: resultObj.title || 'Exam' 
+          },
+          quiz: activeExam,
+          result: resultObj,
+          timeTakenSeconds: elapsedSecs
+        }).catch(e => console.warn("[SureShot] Supabase sync catch:", e));
+      } catch (e) {
+        console.warn("[SureShot] Leaderboard submission notice:", e);
+      }
+
+      const catToUse = selectedCategory || activeExam?.category || 'sureshot';
+      const examIdToUse = selectedExamMeta?.id || resultObj.examId;
+      setSolutionFilter('all');
+      setStep('exam_result');
+      updateExamStep('exam_result', catToUse, examIdToUse);
+
+      if (!isCourseQuiz) {
+        try {
+          window.history.replaceState(null, '', `/exams?category=${catToUse}&step=exam_result&exam=${examIdToUse}`);
+        } catch (e) {}
+      }
+
+      if (isPassed) {
+        try {
+          confetti({
+            particleCount: 120,
+            spread: 80,
+            origin: { y: 0.6 }
+          });
+        } catch (e) {}
+      }
+    } catch (err) {
+      console.error("Critical error in calculateAndFinishExam:", err);
+      setStep('exam_result');
+      try {
+        updateExamStep('exam_result');
       } catch (e) {}
     }
   };
@@ -2218,49 +2255,7 @@ export default function SureShotExamSystem({
             </div>
           </div>
 
-          {/* Negative Marking Toggle Card: Second Timer (-3 Marks) */}
-          <div className={`border rounded-2xl p-3 sm:p-3.5 flex items-center justify-between gap-3.5 transition-all ${
-            isDark 
-              ? 'bg-[#071124]/90 border-[#2563eb]/25 shadow-[0_8px_25px_rgba(0,0,0,0.5)]' 
-              : 'bg-white border-gray-200 shadow-sm'
-          }`}>
-            <div className="flex items-center gap-3 min-w-0">
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                isSecondTimer 
-                  ? (isDark ? 'bg-blue-500/20 border border-blue-500/30 text-blue-400' : 'bg-blue-50 border border-blue-200 text-[#2563eb]')
-                  : (isDark ? 'bg-white/5 border border-white/10 text-gray-400' : 'bg-gray-100 border border-gray-200 text-gray-500')
-              }`}>
-                <Zap size={18} className={isSecondTimer ? "fill-current" : ""} />
-              </div>
-              <div className="min-w-0">
-                <h4 className={`text-xs sm:text-sm font-bold leading-tight ${isDark ? 'text-white' : 'text-[#111827]'}`}>
-                  Second Timer Penalty
-                </h4>
-                <p className={`text-[11px] sm:text-xs mt-0.5 font-semibold transition-colors ${
-                  isSecondTimer 
-                    ? (isDark ? 'text-[#38bdf8]' : 'text-[#2563eb]') 
-                    : (isDark ? 'text-gray-400' : 'text-gray-500')
-                }`}>
-                  {isSecondTimer ? 'Extra -3 marks penalty applied' : 'First Timer (No extra penalty)'}
-                </p>
-              </div>
-            </div>
 
-            {/* Toggle Switch */}
-            <button
-              onClick={() => setIsSecondTimer(!isSecondTimer)}
-              aria-label="Second timer toggle"
-              className={`w-11 h-6 flex items-center rounded-full p-0.5 cursor-pointer transition-colors border-none shrink-0 ${
-                isSecondTimer ? 'bg-[#2563eb]' : (isDark ? 'bg-white/15' : 'bg-gray-300')
-              }`}
-            >
-              <div 
-                className={`bg-white w-5 h-5 rounded-full shadow-md transform transition-transform ${
-                  isSecondTimer ? 'translate-x-5' : 'translate-x-0'
-                }`}
-              />
-            </button>
-          </div>
 
           {/* Scheduled Lock Banner & Countdown if exam is in the future */}
           {(() => {
@@ -2676,7 +2671,17 @@ export default function SureShotExamSystem({
                 })}
               </div>
 
-              <div className="pt-2 text-right">
+              <div className="pt-2 flex items-center justify-between gap-3">
+                <button
+                  onClick={() => {
+                    setQuestionPaletteOpen(false);
+                    setSubmitWarningModal(true);
+                  }}
+                  className="px-4 py-2 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer border-none flex items-center gap-1.5 transition-all"
+                >
+                  <Send size={13} />
+                  <span>Submit Exam</span>
+                </button>
                 <button
                   onClick={() => setQuestionPaletteOpen(false)}
                   className={`px-5 py-2 text-xs font-bold rounded-xl cursor-pointer border-none transition-colors ${
@@ -2740,7 +2745,41 @@ export default function SureShotExamSystem({
   // VIEW 5: RESULTS & COMPREHENSIVE SOLUTION REVIEW
   // -------------------------------------------------------------
   if (step === 'exam_result') {
-    if (!examResult) {
+    const activeResult = examResult || (() => {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlExam = urlParams.get('exam');
+        const saved = sessionStorage.getItem('th_active_exam_result');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (!urlExam || parsed.examId === urlExam) return parsed;
+        }
+        if (urlExam) {
+          const byId = localStorage.getItem(`th_result_${urlExam}`);
+          if (byId) return JSON.parse(byId);
+        }
+        const latest = localStorage.getItem('th_latest_result');
+        if (latest) {
+          const parsed = JSON.parse(latest);
+          if (!urlExam || parsed.examId === urlExam) return parsed;
+        }
+        const hist = localStorage.getItem('th_exam_history');
+        if (hist) {
+          const parsed = JSON.parse(hist);
+          if (parsed && parsed.length > 0) {
+            if (urlExam) {
+              const found = parsed.find(item => item.examId === urlExam);
+              if (found) return found;
+            }
+            return parsed[0];
+          }
+        }
+        if (saved) return JSON.parse(saved);
+      } catch (e) {}
+      return null;
+    })();
+
+    if (!activeResult) {
       return (
         <div className={`min-h-screen p-6 font-sans flex items-center justify-center ${
           isDark ? 'bg-[#030712] text-white' : 'bg-[#f8f9fa] text-[#111827]'
@@ -2771,18 +2810,22 @@ export default function SureShotExamSystem({
       );
     }
 
-    const questions = (examResult?.questions && examResult.questions.length > 0)
-      ? examResult.questions
-      : ((examData && examData.questions && examData.questions.length > 0) ? examData.questions : []);
+    const questions = (activeResult?.questions && activeResult.questions.length > 0)
+      ? activeResult.questions
+      : ((examData && examData.questions && examData.questions.length > 0) 
+          ? examData.questions 
+          : ((selectedExamMeta?.questions && selectedExamMeta.questions.length > 0)
+              ? selectedExamMeta.questions
+              : (initialExam?.questions || [])));
 
-    const activeUserAnswers = (examResult?.userAnswers && Object.keys(examResult.userAnswers).length > 0)
-      ? examResult.userAnswers
+    const activeUserAnswers = (activeResult?.userAnswers && Object.keys(activeResult.userAnswers).length > 0)
+      ? activeResult.userAnswers
       : (userAnswers && Object.keys(userAnswers).length > 0
           ? userAnswers
           : (() => {
               try {
                 const urlParams = new URLSearchParams(window.location.search);
-                const urlExam = urlParams.get('exam') || examResult?.examId;
+                const urlExam = urlParams.get('exam') || activeResult?.examId;
                 if (urlExam) {
                   const byKey = sessionStorage.getItem(`th_answers_${urlExam}`) ||
                                 localStorage.getItem(`th_answers_${urlExam}`);
@@ -2827,23 +2870,21 @@ export default function SureShotExamSystem({
     });
 
     // Dynamically calculate actual question review counts to eliminate discrepancies
-    const reviewCounts = useMemo(() => {
-      let c = 0, w = 0, s = 0;
-      questions.forEach((q, idx) => {
-        const selected = getUserAnswer(activeUserAnswers, q, idx);
-        const isAns = selected !== undefined && selected !== null && selected !== '' && !isNaN(Number(selected));
-        const target = getQuestionCorrectIndex(q);
-        if (!isAns) s++;
-        else if (Number(selected) === Number(target)) c++;
-        else w++;
-      });
-      return { all: questions.length, correct: c, wrong: w, skipped: s };
-    }, [questions, activeUserAnswers]);
+    let reviewCorrectCount = 0, reviewWrongCount = 0, reviewSkippedCount = 0;
+    questions.forEach((q, idx) => {
+      const selected = getUserAnswer(activeUserAnswers, q, idx);
+      const isAns = selected !== undefined && selected !== null && selected !== '' && !isNaN(Number(selected));
+      const target = getQuestionCorrectIndex(q);
+      if (!isAns) reviewSkippedCount++;
+      else if (Number(selected) === Number(target)) reviewCorrectCount++;
+      else reviewWrongCount++;
+    });
+    const reviewCounts = { all: questions.length, correct: reviewCorrectCount, wrong: reviewWrongCount, skipped: reviewSkippedCount };
 
-    const penaltyAmount = Number(examResult.wrongPenalty !== undefined ? examResult.wrongPenalty : (reviewCounts.wrong * (examResult.negPerWrong || 0.25))) + Number(examResult.secondTimerPenalty || 0);
+    const penaltyAmount = Number(activeResult.wrongPenalty !== undefined ? activeResult.wrongPenalty : (reviewCounts.wrong * (activeResult.negPerWrong || 0.25)));
     const computedScore = +(Number(reviewCounts.correct) - penaltyAmount).toFixed(2);
-    const displayedFinalScore = examResult.finalScore !== undefined ? examResult.finalScore : computedScore;
-    const displayedPercentage = Math.max(0, Math.round((Math.max(0, displayedFinalScore) / Number(examResult.totalQuestions || 1)) * 100));
+    const displayedFinalScore = activeResult.finalScore !== undefined ? activeResult.finalScore : computedScore;
+    const displayedPercentage = Math.max(0, Math.round((Math.max(0, displayedFinalScore) / Number(activeResult.totalQuestions || 1)) * 100));
 
     return (
       <div className={`min-h-screen p-4 sm:p-6 md:p-8 font-sans transition-colors duration-300 ${
@@ -2862,7 +2903,7 @@ export default function SureShotExamSystem({
                 Exam Results
               </h2>
               <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                {examResult.title}
+                {activeResult.title}
               </p>
             </div>
 
@@ -2871,7 +2912,7 @@ export default function SureShotExamSystem({
               <div className={`border p-4 rounded-2xl ${isDark ? 'bg-[#0a1834] border-[#2563eb]/15' : 'bg-gray-50 border-gray-200'}`}>
                 <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Final Score</p>
                 <p className="text-2xl font-black text-[#2563eb] dark:text-[#38bdf8]">
-                  {displayedFinalScore} / {examResult.totalQuestions}
+                  {displayedFinalScore} / {activeResult.totalQuestions}
                 </p>
                 <p className={`text-[11px] mt-0.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{displayedPercentage}% Accuracy</p>
               </div>
@@ -2888,7 +2929,7 @@ export default function SureShotExamSystem({
                   {reviewCounts.wrong}
                 </p>
                 <p className="text-[11px] text-blue-500 dark:text-blue-400/80 mt-0.5">
-                  -{Number(reviewCounts.wrong * (examResult.negPerWrong || 0.25)).toFixed(2)} Negative
+                  -{Number(reviewCounts.wrong * (activeResult.negPerWrong || 0.25)).toFixed(2)} Negative
                 </p>
               </div>
               <div className={`border p-4 rounded-2xl ${isDark ? 'bg-[#0a1834] border-[#2563eb]/15' : 'bg-gray-50 border-gray-200'}`}>
@@ -2899,20 +2940,6 @@ export default function SureShotExamSystem({
                 <p className={`text-[11px] mt-0.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>0 marks deducted</p>
               </div>
             </div>
-
-            {/* Second Timer Penalty Banner if Applied */}
-            {examResult.secondTimerPenalty > 0 && (
-              <div className={`p-3 rounded-2xl border flex items-center justify-center gap-2 text-xs font-semibold ${
-                isDark 
-                  ? 'bg-amber-950/40 border-amber-500/30 text-amber-300' 
-                  : 'bg-amber-50 border-amber-200 text-amber-800'
-              }`}>
-                <Zap size={15} className="text-amber-500 shrink-0" />
-                <span>
-                  Second Timer Penalty: <strong>-3.00 marks</strong> deducted from your total score.
-                </span>
-              </div>
-            )}
 
             {/* Action Buttons Row */}
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">

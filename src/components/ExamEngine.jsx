@@ -140,7 +140,7 @@ export default function ExamEngine({ exam, onClose }) {
         quiz: exam,
         result: resultPayload,
         timeTakenSeconds: timeTaken
-      });
+      }).catch(e => console.warn('[ExamEngine] Leaderboard record catch:', e));
     } catch (e) {
       console.warn('[ExamEngine] Leaderboard record notice:', e);
     }
@@ -176,9 +176,23 @@ export default function ExamEngine({ exam, onClose }) {
           </div>
 
           {!isSubmitted && (
-            <div className={`exam-timer-badge ${timeLeft < 180 ? 'timer-urgent' : ''}`}>
-              <Clock size={16} />
-              <span>{formatTime(timeLeft)}</span>
+            <div className="flex items-center gap-2">
+              <div className={`exam-timer-badge ${timeLeft < 180 ? 'timer-urgent' : ''}`}>
+                <Clock size={16} />
+                <span>{formatTime(timeLeft)}</span>
+              </div>
+              <button
+                type="button"
+                className="btn btn-accent text-xs py-1.5 px-3 flex items-center gap-1.5 cursor-pointer shadow-sm hover:scale-105 active:scale-95 transition-all"
+                onClick={() => {
+                  const answered = Object.keys(selectedAnswers).length;
+                  if (window.confirm(`আপনি ${answered}টি প্রশ্নের উত্তর দিয়েছেন। পরীক্ষাটি কি এখনই সাবমিট করতে চান?`)) {
+                    handleSubmitExam();
+                  }
+                }}
+              >
+                <CheckCircle size={14} /> সাবমিট
+              </button>
             </div>
           )}
         </div>
@@ -258,20 +272,26 @@ export default function ExamEngine({ exam, onClose }) {
                 পূর্ববর্তী
               </button>
 
-              <div className="exam-footer-right">
-                {currentIdx < questions.length - 1 ? (
+              <div className="exam-footer-right flex items-center gap-2">
+                <button
+                  type="button"
+                  className="btn btn-accent text-xs py-2 px-3.5 flex items-center gap-1.5 cursor-pointer hover:scale-105 active:scale-95 transition-all"
+                  onClick={() => {
+                    const answered = Object.keys(selectedAnswers).length;
+                    if (window.confirm(`আপনি ${answered}টি প্রশ্নের উত্তর দিয়েছেন। পরীক্ষাটি কি এখনই সাবমিট করতে চান?`)) {
+                      handleSubmitExam();
+                    }
+                  }}
+                >
+                  <CheckCircle size={15} /> সাবমিট
+                </button>
+
+                {currentIdx < questions.length - 1 && (
                   <button
                     className="btn btn-outline"
                     onClick={() => setCurrentIdx(prev => prev + 1)}
                   >
                     পরবর্তী প্রশ্ন
-                  </button>
-                ) : (
-                  <button
-                    className="btn btn-accent"
-                    onClick={handleSubmitExam}
-                  >
-                    <CheckCircle size={16} /> সাবমিট করুন
                   </button>
                 )}
               </div>
@@ -280,32 +300,39 @@ export default function ExamEngine({ exam, onClose }) {
         ) : (
           /* Results View with Medilogy Style OMR and Explanations */
           <div className="exam-result-view animate-fade-in">
-            <div className="result-score-card">
-              <div className="result-trophy">
-                <Award size={48} className="text-warning" />
-              </div>
-              <h3 className="result-title">পরীক্ষা সম্পন্ন হয়েছে!</h3>
-              <p className="result-sub">আপনার স্কোর ও পারফরম্যান্স বিশ্লেষণ</p>
+            {result ? (
+              <div className="result-score-card">
+                <div className="result-trophy">
+                  <Award size={48} className="text-warning" />
+                </div>
+                <h3 className="result-title">পরীক্ষা সম্পন্ন হয়েছে!</h3>
+                <p className="result-sub">আপনার স্কোর ও পারফরম্যান্স বিশ্লেষণ</p>
 
-              <div className="score-summary-grid">
-                <div className="score-item">
-                  <span className="score-val">{result.finalScore} / {result.totalQuestions}</span>
-                  <span className="score-lbl">প্রাপ্ত নম্বর</span>
-                </div>
-                <div className="score-item text-emerald">
-                  <span className="score-val">{result.correctCount}</span>
-                  <span className="score-lbl">সঠিক</span>
-                </div>
-                <div className="score-item text-danger">
-                  <span className="score-val">{result.wrongCount}</span>
-                  <span className="score-lbl">ভুল</span>
-                </div>
-                <div className="score-item text-muted">
-                  <span className="score-val">{result.skippedCount}</span>
-                  <span className="score-lbl">অনুত্তর</span>
+                <div className="score-summary-grid">
+                  <div className="score-item">
+                    <span className="score-val">{result.finalScore} / {result.totalQuestions}</span>
+                    <span className="score-lbl">প্রাপ্ত নম্বর</span>
+                  </div>
+                  <div className="score-item text-emerald">
+                    <span className="score-val">{result.correctCount}</span>
+                    <span className="score-lbl">সঠিক</span>
+                  </div>
+                  <div className="score-item text-danger">
+                    <span className="score-val">{result.wrongCount}</span>
+                    <span className="score-lbl">ভুল</span>
+                  </div>
+                  <div className="score-item text-muted">
+                    <span className="score-val">{result.skippedCount}</span>
+                    <span className="score-lbl">অনুত্তর</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="result-score-card">
+                <h3 className="result-title">পরীক্ষা সম্পন্ন হয়েছে!</h3>
+                <p className="result-sub">ফলাফল লোড হচ্ছে...</p>
+              </div>
+            )}
 
             {/* Question Review with Explanations */}
             <div className="exam-solution-section">

@@ -639,44 +639,7 @@ export default function BiologyCoursePage({
   const [pendingFreeLesson, setPendingFreeLesson] = useState(null);
 
   const handleAccessFreeTrialLesson = (lessonInfo) => {
-    // 1. If student already has full paid enrollment in this course, allow direct access
-    if (isCourseEnrolled) {
-      if (onOpenLesson) {
-        onOpenLesson(course.id || course.slug || selectedCourseId, lessonInfo);
-      }
-      return;
-    }
-
-    // 2. Check if student is logged in
-    if (!currentUser) {
-      if (onLoginClick) {
-        onLoginClick(() => {
-          setTimeout(() => {
-            try {
-              const rawUser = localStorage.getItem('eh_current_user');
-              const u = rawUser ? JSON.parse(rawUser) : null;
-              if (u && isStudentProfileComplete(u)) {
-                if (onOpenLesson) onOpenLesson(course.id || course.slug || selectedCourseId, lessonInfo);
-              } else {
-                setPendingFreeLesson(lessonInfo);
-                setShowProfileCompleteModal(true);
-              }
-            } catch {}
-          }, 350);
-        });
-      }
-      triggerToast('ফ্রি ট্রায়াল ক্লাস করতে প্রথমে অ্যাকাউন্টে লগইন বা সাইন-আপ করুন');
-      return;
-    }
-
-    // 3. Check if profile is complete (Name, Mobile Number, College Name, HSC Batch/Class)
-    if (!isStudentProfileComplete(currentUser)) {
-      setPendingFreeLesson(lessonInfo);
-      setShowProfileCompleteModal(true);
-      return;
-    }
-
-    // 4. Profile is complete! Open free trial class immediately
+    // Free trial classes can be accessed directly without requiring profile completion
     if (onOpenLesson) {
       onOpenLesson(course.id || course.slug || selectedCourseId, lessonInfo);
     }
@@ -946,13 +909,15 @@ export default function BiologyCoursePage({
         }}
       >
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-transform group-hover:scale-105 ${
+          <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 group-hover:scale-110 ${
             isUnlocked 
-              ? 'bg-blue-100 text-blue-600 shadow-2xs' 
-              : (isDark ? 'bg-gray-800 text-gray-400' : 'bg-gray-200 text-gray-500')
+              ? (isDark 
+                  ? 'bg-blue-500/15 text-[#38bdf8] border border-blue-500/30 group-hover:bg-[#2563eb] group-hover:text-white group-hover:border-[#2563eb] group-hover:shadow-md group-hover:shadow-blue-500/30' 
+                  : 'bg-blue-50 text-[#2563eb] border border-blue-200/80 group-hover:bg-[#2563eb] group-hover:text-white group-hover:border-[#2563eb] group-hover:shadow-md group-hover:shadow-blue-500/25')
+              : (isDark ? 'bg-gray-800/80 text-gray-400 border border-white/5' : 'bg-gray-100 text-gray-500 border border-gray-200')
           }`}>
             {isUnlocked ? (
-              <Play className="w-3.5 h-3.5 fill-red-600 text-blue-600 ml-0.5" />
+              <Play className="w-3.5 h-3.5 fill-current ml-0.5 transition-colors" />
             ) : (
               <Lock className="w-3.5 h-3.5" />
             )}
@@ -995,18 +960,6 @@ export default function BiologyCoursePage({
                   lessonIdx: lIdx,
                   activeTab: 'notes'
                 };
-                if (isFree && !isCourseEnrolled) {
-                  if (!currentUser) {
-                    if (onLoginClick) onLoginClick();
-                    triggerToast('ফ্রি নোট দেখতে প্রথমে লগইন করুন');
-                    return;
-                  }
-                  if (!isStudentProfileComplete(currentUser)) {
-                    setPendingFreeLesson(targetLessonInfo);
-                    setShowProfileCompleteModal(true);
-                    return;
-                  }
-                }
                 if (pdfUrl.startsWith('http') || pdfUrl.startsWith('/') || pdfUrl.startsWith('blob:')) {
                   window.open(pdfUrl, '_blank', 'noopener,noreferrer');
                 } else if (onOpenLesson) {

@@ -18,7 +18,8 @@ import {
   Calendar,
   Trophy,
   AlertCircle,
-  Timer
+  Timer,
+  Palette
 } from 'lucide-react';
 import { masterEnglishCourseData } from '../data/masterEnglishCourseData';
 import { freeCoursesData } from '../data/freeCoursesData';
@@ -34,6 +35,149 @@ import ProfileModal from './ProfileModal';
 import { isStudentProfileComplete } from '../utils/studentProfile';
 import { recordQuizSubmission, checkQuizLiveStatus } from '../services/quizService';
 import { getQuizScheduleState, formatScheduleDateTimeBn, toBengaliDigits } from '../utils/quizScheduleHelper';
+
+export const PLAYER_THEMES = {
+  indigo: {
+    id: 'indigo',
+    name: 'Midnight Indigo',
+    dotColor: '#6366f1',
+    bgDark: 'bg-[#060a14]',
+    bgLight: 'bg-[#f8fafc]',
+    cardDark: 'bg-[#0c1222]/90 border-indigo-500/20 shadow-xl shadow-black/40',
+    cardLight: 'bg-white border-slate-200 shadow-xs',
+    cardHoverDark: 'hover:bg-[#121b30] hover:border-indigo-500/40',
+    cardHoverLight: 'hover:bg-indigo-50/50 hover:border-indigo-200',
+    headerDark: 'border-indigo-500/20 bg-[#090f1d]',
+    headerLight: 'border-slate-100 bg-slate-50',
+    activeDark: 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 ring-2 ring-indigo-400/40',
+    activeLight: 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25 ring-2 ring-indigo-300',
+    activeSoftDark: 'bg-indigo-500/20 border-indigo-500/30',
+    activeSoftLight: 'bg-indigo-50 border-indigo-200/80',
+    accentTextDark: 'text-indigo-400',
+    accentTextLight: 'text-indigo-600',
+    accentBgDark: 'bg-indigo-600',
+    accentBgLight: 'bg-indigo-600',
+    glowColor: 'bg-indigo-600/20',
+    borderColorDark: 'border-indigo-500/30',
+    borderColorLight: 'border-slate-200',
+    badgeDark: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30',
+    badgeLight: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    buttonGrad: 'from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500',
+    videoGlow: 'shadow-indigo-500/10 border-indigo-500/30'
+  },
+  purple: {
+    id: 'purple',
+    name: 'Royal Violet',
+    dotColor: '#8b5cf6',
+    bgDark: 'bg-[#090514]',
+    bgLight: 'bg-[#fdfafb]',
+    cardDark: 'bg-[#120a22]/90 border-purple-500/20 shadow-xl shadow-black/40',
+    cardLight: 'bg-white border-slate-200 shadow-xs',
+    cardHoverDark: 'hover:bg-[#1a0f30] hover:border-purple-500/40',
+    cardHoverLight: 'hover:bg-purple-50/50 hover:border-purple-200',
+    headerDark: 'border-purple-500/20 bg-[#0d071a]',
+    headerLight: 'border-slate-100 bg-slate-50',
+    activeDark: 'bg-purple-600 text-white shadow-md shadow-purple-600/30 ring-2 ring-purple-400/40',
+    activeLight: 'bg-purple-600 text-white shadow-md shadow-purple-600/25 ring-2 ring-purple-300',
+    activeSoftDark: 'bg-purple-500/20 border-purple-500/30',
+    activeSoftLight: 'bg-purple-50 border-purple-200/80',
+    accentTextDark: 'text-purple-400',
+    accentTextLight: 'text-purple-600',
+    accentBgDark: 'bg-purple-600',
+    accentBgLight: 'bg-purple-600',
+    glowColor: 'bg-purple-600/20',
+    borderColorDark: 'border-purple-500/30',
+    borderColorLight: 'border-slate-200',
+    badgeDark: 'bg-purple-500/15 text-purple-300 border-purple-500/30',
+    badgeLight: 'bg-purple-50 text-purple-700 border-purple-200',
+    buttonGrad: 'from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500',
+    videoGlow: 'shadow-purple-500/10 border-purple-500/30'
+  },
+  cyan: {
+    id: 'cyan',
+    name: 'Cyber Cyan',
+    dotColor: '#06b6d4',
+    bgDark: 'bg-[#030d17]',
+    bgLight: 'bg-[#f6fcfe]',
+    cardDark: 'bg-[#081726]/90 border-cyan-500/20 shadow-xl shadow-black/40',
+    cardLight: 'bg-white border-slate-200 shadow-xs',
+    cardHoverDark: 'hover:bg-[#0c2236] hover:border-cyan-500/40',
+    cardHoverLight: 'hover:bg-cyan-50/50 hover:border-cyan-200',
+    headerDark: 'border-cyan-500/20 bg-[#06121f]',
+    headerLight: 'border-slate-100 bg-slate-50',
+    activeDark: 'bg-cyan-600 text-white shadow-md shadow-cyan-600/30 ring-2 ring-cyan-400/40',
+    activeLight: 'bg-cyan-600 text-white shadow-md shadow-cyan-600/25 ring-2 ring-cyan-300',
+    activeSoftDark: 'bg-cyan-500/20 border-cyan-500/30',
+    activeSoftLight: 'bg-cyan-50 border-cyan-200/80',
+    accentTextDark: 'text-cyan-400',
+    accentTextLight: 'text-cyan-600',
+    accentBgDark: 'bg-cyan-600',
+    accentBgLight: 'bg-cyan-600',
+    glowColor: 'bg-cyan-600/20',
+    borderColorDark: 'border-cyan-500/30',
+    borderColorLight: 'border-slate-200',
+    badgeDark: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30',
+    badgeLight: 'bg-cyan-50 text-cyan-700 border-cyan-200',
+    buttonGrad: 'from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500',
+    videoGlow: 'shadow-cyan-500/10 border-cyan-500/30'
+  },
+  emerald: {
+    id: 'emerald',
+    name: 'Forest Emerald',
+    dotColor: '#10b981',
+    bgDark: 'bg-[#03110b]',
+    bgLight: 'bg-[#f6fcf8]',
+    cardDark: 'bg-[#071c13]/90 border-emerald-500/20 shadow-xl shadow-black/40',
+    cardLight: 'bg-white border-slate-200 shadow-xs',
+    cardHoverDark: 'hover:bg-[#0b271b] hover:border-emerald-500/40',
+    cardHoverLight: 'hover:bg-emerald-50/50 hover:border-emerald-200',
+    headerDark: 'border-emerald-500/20 bg-[#05160e]',
+    headerLight: 'border-slate-100 bg-slate-50',
+    activeDark: 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30 ring-2 ring-emerald-400/40',
+    activeLight: 'bg-emerald-600 text-white shadow-md shadow-emerald-600/25 ring-2 ring-emerald-300',
+    activeSoftDark: 'bg-emerald-500/20 border-emerald-500/30',
+    activeSoftLight: 'bg-emerald-50 border-emerald-200/80',
+    accentTextDark: 'text-emerald-400',
+    accentTextLight: 'text-emerald-600',
+    accentBgDark: 'bg-emerald-600',
+    accentBgLight: 'bg-emerald-600',
+    glowColor: 'bg-emerald-600/20',
+    borderColorDark: 'border-emerald-500/30',
+    borderColorLight: 'border-slate-200',
+    badgeDark: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+    badgeLight: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    buttonGrad: 'from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500',
+    videoGlow: 'shadow-emerald-500/10 border-emerald-500/30'
+  },
+  oled: {
+    id: 'oled',
+    name: 'OLED Cinema',
+    dotColor: '#ffffff',
+    bgDark: 'bg-[#000000]',
+    bgLight: 'bg-[#fafafa]',
+    cardDark: 'bg-[#0c0c0e]/95 border-white/10 shadow-xl shadow-black/60',
+    cardLight: 'bg-white border-slate-200 shadow-xs',
+    cardHoverDark: 'hover:bg-[#151518] hover:border-white/20',
+    cardHoverLight: 'hover:bg-slate-100/70 hover:border-slate-300',
+    headerDark: 'border-white/10 bg-[#08080a]',
+    headerLight: 'border-slate-100 bg-slate-50',
+    activeDark: 'bg-white text-black shadow-md shadow-white/25 ring-2 ring-white/50 font-black',
+    activeLight: 'bg-black text-white shadow-md shadow-black/25 ring-2 ring-black/30 font-black',
+    activeSoftDark: 'bg-white/10 border-white/20',
+    activeSoftLight: 'bg-slate-100 border-slate-300',
+    accentTextDark: 'text-white',
+    accentTextLight: 'text-slate-900',
+    accentBgDark: 'bg-white text-black',
+    accentBgLight: 'bg-black text-white',
+    glowColor: 'bg-white/10',
+    borderColorDark: 'border-white/15',
+    borderColorLight: 'border-slate-200',
+    badgeDark: 'bg-white/10 text-white border-white/20',
+    badgeLight: 'bg-slate-100 text-slate-800 border-slate-200',
+    buttonGrad: 'from-zinc-800 to-zinc-950 hover:from-zinc-700 hover:to-zinc-900',
+    videoGlow: 'shadow-white/5 border-white/15'
+  }
+};
 
 function getEmbedUrl(url) {
   if (!url) return '';
@@ -113,6 +257,16 @@ export default function CoursePlayerPage({
 }) {
   const { isDark } = useTheme();
   const { currentUser } = useAuth();
+
+  const [playerTheme, setPlayerTheme] = useState(() => {
+    try {
+      return localStorage.getItem('th_player_theme') || 'indigo';
+    } catch (e) {
+      return 'indigo';
+    }
+  });
+
+  const pt = PLAYER_THEMES[playerTheme] || PLAYER_THEMES.indigo;
 
   // Find course object with bulletproof matching across id, slug, key, title, and index
   const course = useMemo(() => {
@@ -308,7 +462,6 @@ export default function CoursePlayerPage({
   };
 
   const isCurrentLessonUnlocked = isEnrolled || Boolean(currentLesson.isFree);
-  const isProfileNeededForFree = !_isCourseEnrolled && Boolean(currentLesson.isFree) && (!currentUser || !isStudentProfileComplete(currentUser));
 
   const [isPdfDropdownOpen, setIsPdfDropdownOpen] = useState(false);
   const activeLessonRef = useRef(null);
@@ -465,12 +618,12 @@ export default function CoursePlayerPage({
   }, [activeIndex]);
 
   // When an exam is launched, render the full-featured SureShotExamSystem screen
-  // matching View 3 ("Ready to Start" with Total Questions, Duration, Second Timer, Start Exam button)
+  // matching View 3 ("Ready to Start" with Total Questions, Duration, Start Exam button)
   // and upon clicking Start Exam runs the live exam engine.
   if (activeLessonExam) {
     return (
-      <div className={`min-h-screen transition-colors duration-200 selection:bg-[#2563eb] selection:text-white ${
-        isDark ? 'bg-[#030712] text-white' : 'bg-[#f8f9fa] text-slate-900'
+      <div className={`min-h-screen transition-colors duration-200 selection:bg-indigo-600 selection:text-white ${
+        isDark ? `${pt.bgDark} text-white` : `${pt.bgLight} text-slate-900`
       }`}>
         <Navbar 
           activePage="exams"
@@ -497,40 +650,41 @@ export default function CoursePlayerPage({
             isCourseQuiz={true}
             onBackToLesson={() => setActiveLessonExam(null)}
             onBackToCourses={() => setActiveLessonExam(null)}
-            onExamComplete={async (result) => {
-              const totalPossible = activeLessonExam.totalMarks || activeLessonExam.totalQuestions || result.totalQuestions;
-              const resultObj = {
-                score: result.finalScore,
-                totalPossible: totalPossible,
-                correctCount: result.correct,
-                wrongCount: result.wrong,
-                skippedCount: result.skipped,
-                totalQuestions: result.totalQuestions,
-                percentage: result.percentage,
-                timeTakenSeconds: result.timeTakenSeconds || 0
-              };
-              setSavedLessonScores(prev => {
-                const updated = {
-                  ...prev,
-                  [currentLesson.id]: resultObj
-                };
-                try {
-                  localStorage.setItem('th_lesson_quiz_scores', JSON.stringify(updated));
-                } catch {}
-                return updated;
-              });
-
+            onExamComplete={(result) => {
               try {
-                await recordQuizSubmission({
-                  student: currentUser || { id: 'guest_student', name: 'Student' },
-                  course,
-                  lesson: currentLesson,
-                  quiz: currentLesson.quiz,
-                  result: resultObj,
-                  timeTakenSeconds: result.timeTakenSeconds || 0
+                const totalPossible = activeLessonExam?.totalMarks || activeLessonExam?.totalQuestions || result?.totalQuestions || 1;
+                const resultObj = {
+                  score: result?.finalScore !== undefined ? result.finalScore : (result?.score || 0),
+                  totalPossible: totalPossible,
+                  correctCount: result?.correct || 0,
+                  wrongCount: result?.wrong || 0,
+                  skippedCount: result?.skipped || 0,
+                  totalQuestions: result?.totalQuestions || totalPossible,
+                  percentage: result?.percentage || 0,
+                  timeTakenSeconds: result?.timeTakenSeconds || 0
+                };
+                const lessonId = currentLesson?.id || activeLessonExam?.id || 'active_lesson';
+                setSavedLessonScores(prev => {
+                  const updated = {
+                    ...prev,
+                    [lessonId]: resultObj
+                  };
+                  try {
+                    localStorage.setItem('th_lesson_quiz_scores', JSON.stringify(updated));
+                  } catch {}
+                  return updated;
                 });
+
+                recordQuizSubmission({
+                  student: currentUser || { id: 'guest_student', name: 'Student' },
+                  course: course || { id: 'course', title: 'Course' },
+                  lesson: currentLesson || { id: lessonId, title: activeLessonExam?.title || 'Lesson Quiz' },
+                  quiz: currentLesson?.quiz || activeLessonExam,
+                  result: resultObj,
+                  timeTakenSeconds: result?.timeTakenSeconds || 0
+                }).catch(e => console.warn('[CoursePlayer] Supabase quiz submission catch:', e));
               } catch (e) {
-                console.warn('[CoursePlayer] Failed to record quiz submission:', e);
+                console.warn('[CoursePlayer] Failed to process quiz completion:', e);
               }
             }}
             siteSettings={data?.siteSettings || {}}
@@ -544,8 +698,8 @@ export default function CoursePlayerPage({
   }
 
   return (
-    <div className={`min-h-screen transition-colors duration-200 ${
-      isDark ? 'bg-[#030712] text-white' : 'bg-[#f8fafc] text-slate-900'
+    <div className={`min-h-screen transition-colors duration-300 selection:bg-indigo-600 selection:text-white ${
+      isDark ? `${pt.bgDark} text-white` : `${pt.bgLight} text-slate-900`
     }`}>
       {/* Top Navbar with Course Title & Right Side Menu Drawer Toggle */}
       <Navbar 
@@ -586,8 +740,8 @@ export default function CoursePlayerPage({
             
             {/* Video Player or Locked Paywall Shield */}
             <div 
-              className={`relative w-full aspect-video rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border select-none ${
-                isDark ? 'bg-black border-[#2563eb]/30 shadow-[#2563eb]/10' : 'bg-black border-slate-200 shadow-slate-200'
+              className={`relative w-full aspect-video rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border select-none transition-all duration-300 ${
+                isDark ? `bg-black ${pt.borderColorDark} ${pt.videoGlow}` : 'bg-black border-slate-200 shadow-slate-200'
               }`}
               onContextMenu={(e) => e.preventDefault()}
             >
@@ -595,7 +749,7 @@ export default function CoursePlayerPage({
                 /* LOCKED PAYWALL SCREEN */
                 <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 sm:p-10 relative overflow-hidden bg-gradient-to-br from-[#060f1e] via-[#09162e] to-[#030712]">
                   {/* Ambient Glow */}
-                  <div className="absolute w-72 h-72 rounded-full bg-blue-600/20 blur-3xl pointer-events-none" />
+                  <div className={`absolute w-72 h-72 rounded-full ${pt.glowColor} blur-3xl pointer-events-none`} />
                   
                   <div className="relative z-10 max-w-lg space-y-4">
                     {/* Animated Glowing Lock Badge */}
@@ -619,7 +773,7 @@ export default function CoursePlayerPage({
                       <button
                         type="button"
                         onClick={() => setShowCheckoutModal(true)}
-                        className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#2563eb] to-[#1d4ed8] hover:from-blue-600 hover:to-blue-700 text-white text-xs sm:text-sm font-black shadow-lg shadow-blue-600/30 cursor-pointer border-none transition-all active:scale-95 flex items-center justify-center gap-2"
+                        className={`w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r ${pt.buttonGrad} text-white text-xs sm:text-sm font-black shadow-lg cursor-pointer border-none transition-all active:scale-95 flex items-center justify-center gap-2`}
                       >
                         <ShoppingCart className="w-4 h-4" />
                         <span>এখনই ভর্তি হোন — ৳{course.salePrice || course.price || 499}</span>
@@ -634,48 +788,6 @@ export default function CoursePlayerPage({
                           কোর্স বিস্তারিত দেখুন
                         </button>
                       )}
-                    </div>
-                  </div>
-                </div>
-              ) : isProfileNeededForFree ? (
-                /* FREE TRIAL PROFILE COMPLETION REQUIRED SCREEN */
-                <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 sm:p-10 relative overflow-hidden bg-gradient-to-br from-[#060f1e] via-[#09162e] to-[#030712]">
-                  {/* Ambient Glow */}
-                  <div className="absolute w-72 h-72 rounded-full bg-[#2563eb]/20 blur-3xl pointer-events-none" />
-                  
-                  <div className="relative z-10 max-w-lg space-y-4">
-                    {/* Glowing Free Trial Badge */}
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-gradient-to-tr from-[#1e3a8a] via-[#2563eb] to-[#38bdf8] text-white flex items-center justify-center mx-auto shadow-2xl shadow-blue-500/30 border border-white/20">
-                      <Play className="w-8 h-8 sm:w-10 sm:h-10 fill-white text-white ml-1" />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <span className="inline-block px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                        🎁 ফ্রি ট্রায়াল ক্লাস · Free Trial
-                      </span>
-                      <h2 className="text-lg sm:text-2xl font-black text-white leading-tight">
-                        {currentLesson.title}
-                      </h2>
-                      <p className="text-xs sm:text-sm text-gray-300 max-w-md mx-auto leading-relaxed">
-                        ফ্রি ট্রায়াল ক্লাসটি চালু করতে আপনার নাম, সচল মোবাইল নম্বর, কলেজ ও ক্লাস পূরণ করুন। সংরক্ষণ করা মাত্রই ক্লাসটি স্বয়ংক্রিয়ভাবে চালু হয়ে যাবে।
-                      </p>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (!currentUser) {
-                            if (onLoginClick) onLoginClick();
-                          } else {
-                            setShowProfileModal(true);
-                          }
-                        }}
-                        className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-gradient-to-r from-[#2563eb] to-[#38bdf8] hover:opacity-95 text-white text-xs sm:text-sm font-black shadow-lg shadow-blue-600/30 cursor-pointer border-none transition-all active:scale-95 flex items-center justify-center gap-2"
-                      >
-                        <Play className="w-4 h-4 fill-white" />
-                        <span>{!currentUser ? 'লগইন করে ক্লাস শুরু করুন' : 'প্রোফাইল পূরণ করে ক্লাস দেখুন'}</span>
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -716,8 +828,8 @@ export default function CoursePlayerPage({
             </div>
 
             {/* Video Title & Meta Bar (Directly below video) */}
-            <div className={`p-4 sm:p-6 rounded-2xl sm:rounded-3xl border transition-colors ${
-              isDark ? 'bg-[#0b172a]/80 border-[#2563eb]/25' : 'bg-white border-slate-200 shadow-xs'
+            <div className={`p-4 sm:p-6 rounded-2xl sm:rounded-3xl border transition-all duration-300 ${
+              isDark ? pt.cardDark : pt.cardLight
             }`}>
               <div>
                 <h1 className="text-lg sm:text-2xl font-black leading-tight text-balance">
@@ -733,18 +845,18 @@ export default function CoursePlayerPage({
                   className={`w-full flex items-center justify-between p-3.5 sm:p-4 rounded-2xl border transition-all duration-300 cursor-pointer shadow-xs group ${
                     isPdfDropdownOpen
                       ? (isDark 
-                          ? 'bg-[#08152c] border-blue-500/30 text-white' 
-                          : 'bg-blue-50/70 border-blue-300 text-slate-900')
+                          ? `${pt.activeSoftDark} text-white` 
+                          : `${pt.activeSoftLight} text-slate-900`)
                       : (isDark 
-                          ? 'bg-[#071124]/90 hover:bg-[#0a1834] border-[#2563eb]/25 text-gray-200 hover:text-white hover:border-[#2563eb]/40' 
+                          ? `${pt.cardHoverDark} ${pt.borderColorDark} text-gray-200 hover:text-white` 
                           : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-800 hover:border-slate-300')
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
                       isDark 
-                        ? 'bg-blue-500/20 text-blue-400 group-hover:bg-blue-500/20' 
-                        : 'bg-blue-100 text-blue-600 group-hover:bg-blue-200'
+                        ? `${pt.activeSoftDark} ${pt.accentTextDark}` 
+                        : 'bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200'
                     }`}>
                       <FileText className="w-5 h-5" />
                     </div>
@@ -874,18 +986,18 @@ export default function CoursePlayerPage({
                   className={`w-full flex items-center justify-between p-3.5 sm:p-4 rounded-2xl border transition-all duration-300 cursor-pointer shadow-xs group ${
                     isQuizDropdownOpen
                       ? (isDark 
-                          ? 'bg-[#08152c] border-blue-500/30 text-white' 
-                          : 'bg-blue-50/70 border-blue-300 text-slate-900')
+                          ? `${pt.activeSoftDark} text-white` 
+                          : `${pt.activeSoftLight} text-slate-900`)
                       : (isDark 
-                          ? 'bg-[#071124]/90 hover:bg-[#0a1834] border-[#2563eb]/25 text-gray-200 hover:text-white hover:border-[#2563eb]/40' 
+                          ? `${pt.cardHoverDark} ${pt.borderColorDark} text-gray-200 hover:text-white` 
                           : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-800 hover:border-slate-300')
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
                       isDark 
-                        ? 'bg-blue-500/20 text-blue-400 group-hover:bg-blue-500/20' 
-                        : 'bg-blue-100 text-blue-600 group-hover:bg-blue-200'
+                        ? `${pt.activeSoftDark} ${pt.accentTextDark}` 
+                        : 'bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200'
                     }`}>
                       <Zap className="w-5 h-5" />
                     </div>
@@ -1298,26 +1410,52 @@ export default function CoursePlayerPage({
 
           {/* Right Column: Course Curriculum Playlist (YouTube / Udemy style) */}
           <div className="lg:col-span-4 flex flex-col gap-4">
-            <div className={`sticky top-20 rounded-2xl sm:rounded-3xl border overflow-hidden transition-colors ${
-              isDark ? 'bg-[#0b172a]/90 border-[#2563eb]/25 shadow-xl' : 'bg-white border-slate-200 shadow-sm'
+            <div className={`sticky top-20 rounded-2xl sm:rounded-3xl border overflow-hidden transition-all duration-300 ${
+              isDark ? pt.cardDark : pt.cardLight
             }`}>
               
-              {/* Playlist Header */}
-              <div className={`p-4 border-b flex items-center justify-between gap-3 ${
-                isDark ? 'border-[#2563eb]/20 bg-[#091832]' : 'border-slate-100 bg-slate-50'
+              {/* Playlist Header with Title, Classes count, and Theme Color Switcher */}
+              <div className={`p-4 border-b flex flex-wrap items-center justify-between gap-3 ${
+                isDark ? pt.headerDark : pt.headerLight
               }`}>
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold">
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold ${
+                    isDark ? `${pt.activeSoftDark} ${pt.accentTextDark}` : 'bg-indigo-100 text-indigo-600'
+                  }`}>
                     <ListVideo className="w-4 h-4" />
                   </div>
                   <h3 className="text-sm sm:text-base font-black leading-tight">Course Playlist</h3>
                 </div>
 
-                <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg ${
-                  isDark ? 'bg-white/5 text-gray-300 border border-white/10' : 'bg-slate-200/70 text-slate-700'
-                }`}>
-                  {allLessons.length} Classes
-                </span>
+                <div className="flex items-center gap-2">
+                  {/* Theme Switcher Quick Selector */}
+                  <div className="flex items-center gap-1.5 px-2 py-1 bg-black/20 dark:bg-black/50 rounded-full border border-white/10 shadow-inner" title="Change Player Theme">
+                    <Palette className="w-3 h-3 text-gray-400" />
+                    {Object.values(PLAYER_THEMES).map(t => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => {
+                          setPlayerTheme(t.id);
+                          try { localStorage.setItem('th_player_theme', t.id); } catch(e){}
+                        }}
+                        title={`${t.name} Theme`}
+                        className={`w-3.5 h-3.5 rounded-full transition-all cursor-pointer border ${
+                          playerTheme === t.id
+                            ? 'scale-125 ring-2 ring-white shadow-md'
+                            : 'opacity-50 hover:opacity-100 hover:scale-110 border-transparent'
+                        }`}
+                        style={{ backgroundColor: t.dotColor }}
+                      />
+                    ))}
+                  </div>
+
+                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg ${
+                    isDark ? 'bg-white/5 text-gray-300 border border-white/10' : 'bg-slate-200/70 text-slate-700'
+                  }`}>
+                    {allLessons.length} Classes
+                  </span>
+                </div>
               </div>
 
               {/* Lesson Items Scrollable Container with Harmonious Smooth Scrollbar */}
@@ -1334,30 +1472,23 @@ export default function CoursePlayerPage({
                           setShowCheckoutModal(true);
                           return;
                         }
-                        if (!_isCourseEnrolled && les.isFree && (!currentUser || !isStudentProfileComplete(currentUser))) {
-                          if (!currentUser) {
-                            if (onLoginClick) onLoginClick();
-                          } else {
-                            setPendingPlaylistIndex(idx);
-                            setShowProfileModal(true);
-                          }
-                          return;
-                        }
                         setActiveIndex(idx);
                       }}
                       className={`group flex items-center justify-between gap-3 p-3 rounded-xl transition-all cursor-pointer ${
                         isActive
-                          ? (isDark ? 'bg-blue-500/20 border border-blue-500/30' : 'bg-blue-50 border border-blue-200/80')
-                          : (isDark ? 'hover:bg-[#091834] border border-transparent' : 'hover:bg-slate-100/70 border border-transparent')
+                          ? (isDark ? pt.activeSoftDark : pt.activeSoftLight)
+                          : (isDark ? `${pt.cardHoverDark} border border-transparent` : 'hover:bg-slate-100/70 border border-transparent')
                       }`}
                     >
                       {/* Left: Circle icon + Title */}
                       <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-transform group-hover:scale-105 ${
+                        <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-200 group-hover:scale-105 ${
                           isActive
-                            ? (isLessonUnlocked ? 'bg-[#2563eb] text-white shadow-xs' : 'bg-amber-600 text-white shadow-xs')
+                            ? (isLessonUnlocked ? (isDark ? pt.activeDark : pt.activeLight) : 'bg-amber-600 text-white shadow-xs')
                             : isLessonUnlocked
-                              ? (isDark ? 'bg-gray-800 text-gray-400' : 'bg-slate-200 text-slate-600')
+                              ? (isDark 
+                                  ? `${pt.activeSoftDark} text-gray-300 group-hover:${pt.accentBgDark} group-hover:text-white group-hover:shadow-md` 
+                                  : `bg-slate-100 text-slate-700 border border-slate-200 group-hover:${pt.accentBgLight} group-hover:text-white group-hover:shadow-md`)
                               : (isDark ? 'bg-gray-900/90 text-gray-500 border border-white/5' : 'bg-slate-100 text-slate-400 border border-slate-200/60')
                         }`}>
                           {isActive ? (
@@ -1367,7 +1498,10 @@ export default function CoursePlayerPage({
                               <Lock className="w-3.5 h-3.5" />
                             )
                           ) : isLessonUnlocked ? (
-                            <span>{idx + 1}</span>
+                            <>
+                              <span className="group-hover:hidden">{idx + 1}</span>
+                              <Play className="w-3 h-3 fill-current ml-0.5 hidden group-hover:block transition-all" />
+                            </>
                           ) : (
                             <Lock className="w-3.5 h-3.5" />
                           )}
@@ -1376,8 +1510,8 @@ export default function CoursePlayerPage({
                         <div className="min-w-0 flex-1">
                           <p className={`text-xs sm:text-sm font-semibold line-clamp-2 leading-snug transition-colors ${
                             isActive
-                              ? 'text-blue-500 font-bold'
-                              : (isDark ? 'text-gray-200 group-hover:text-blue-400' : 'text-slate-800 group-hover:text-[#2563eb]')
+                              ? `${isDark ? pt.accentTextDark : pt.accentTextLight} font-bold`
+                              : (isDark ? `text-gray-200 group-hover:${pt.accentTextDark}` : `text-slate-800 group-hover:${pt.accentTextLight}`)
                           }`}>
                             {les.title}
                           </p>
@@ -1403,8 +1537,8 @@ export default function CoursePlayerPage({
                           }
                           if (sched.isLive) {
                             return (
-                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-[#2563eb]/15 text-[#38bdf8] border border-[#2563eb]/30 flex items-center gap-1 shrink-0">
-                                <span className="w-1.5 h-1.5 rounded-full bg-[#2563eb] animate-ping"></span>
+                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${pt.badgeDark} flex items-center gap-1 shrink-0`}>
+                                <span className="w-1.5 h-1.5 rounded-full animate-ping" style={{ backgroundColor: pt.dotColor }}></span>
                                 Quiz Live
                               </span>
                             );

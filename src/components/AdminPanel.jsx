@@ -592,17 +592,6 @@ export default function AdminPanel({ data, onUpdateData, onResetData, onExitAdmi
     if (Array.isArray(data?.heroSlides) && data.heroSlides.length > 0) setHeroSlides(data.heroSlides);
   }, [data?.heroSlides]);
 
-  useEffect(() => {
-    if (Array.isArray(data?.bundles) && data.bundles.length > 0) setBundles(data.bundles);
-  }, [data?.bundles]);
-
-  useEffect(() => {
-    if (Array.isArray(data?.instructors) && data.instructors.length > 0) setInstructors(data.instructors);
-  }, [data?.instructors]);
-
-  useEffect(() => {
-    if (Array.isArray(data?.whyChooseUs) && data.whyChooseUs.length > 0) setWhyChooseUs(data.whyChooseUs);
-  }, [data?.whyChooseUs]);
 
   const [categories, setCategories] = useState(() => {
     const raw = Array.isArray(data?.categories) 
@@ -2062,6 +2051,7 @@ export default function AdminPanel({ data, onUpdateData, onResetData, onExitAdmi
       );
     }
     if (Array.isArray(data.freeVideos)) setFreeVideos(data.freeVideos);
+    if (Array.isArray(data.instructors)) setInstructors(data.instructors);
     if (Array.isArray(data.storeProducts)) setStoreProducts(data.storeProducts);
     if (Array.isArray(data.whyChooseUs)) setWhyChooseUs(data.whyChooseUs);
     if (data.siteSettings) setSiteSettings(data.siteSettings);
@@ -2723,6 +2713,8 @@ export default function AdminPanel({ data, onUpdateData, onResetData, onExitAdmi
     }
   };
 
+  const [isSaving, setIsSaving] = useState(false);
+
   // Central Save & Persist
   const persistAll = (overrides = {}) => {
     const currentCourses = overrides.courses !== undefined ? overrides.courses : courses;
@@ -2773,10 +2765,53 @@ export default function AdminPanel({ data, onUpdateData, onResetData, onExitAdmi
     };
     onUpdateData(fullState);
     try {
+      localStorage.setItem('th_data', JSON.stringify(fullState));
+    } catch (e) {}
+    try {
       saveSupabaseSiteData(fullState);
     } catch (e) {}
+    try {
+      saveCloudData(fullState);
+    } catch (e) {}
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('th_data_updated', { detail: fullState }));
+      if (typeof BroadcastChannel !== 'undefined') {
+        try {
+          const bc = new BroadcastChannel('th_sync_channel');
+          bc.postMessage({ type: 'DATA_SYNC', payload: fullState });
+          bc.close();
+        } catch (e) {}
+      }
+    }
     return fullState;
   };
+
+  const handleSaveAllChanges = (overrides = {}, customSuccessMsg = null) => {
+    setIsSaving(true);
+    try {
+      const fullState = persistAll(overrides);
+      triggerToast(customSuccessMsg || '✅ সব পরিবর্তন সফলভাবে সেভ হয়েছে এবং ওয়েবসাইটে লাইভ আপডেট হয়েছে!');
+      return fullState;
+    } finally {
+      setTimeout(() => setIsSaving(false), 500);
+    }
+  };
+
+  const renderTabSaveButton = (label = 'Save Changes (সেভ করুন)', extraAction = null) => (
+    <button
+      type="button"
+      onClick={() => {
+        if (typeof extraAction === 'function') extraAction();
+        handleSaveAllChanges();
+      }}
+      disabled={isSaving}
+      className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs shadow-sm shadow-emerald-600/20 active:scale-95 transition-all cursor-pointer border-none shrink-0 select-none"
+      title="Save changes to website live"
+    >
+      <Save className={`w-3.5 h-3.5 ${isSaving ? 'animate-spin' : ''}`} />
+      <span>{isSaving ? 'সেভ হচ্ছে...' : label}</span>
+    </button>
+  );
 
 
   // -------------------------------------------------------------
@@ -4384,10 +4419,12 @@ export default function AdminPanel({ data, onUpdateData, onResetData, onExitAdmi
       return isMatch ? { ...b, isActive: nextActive } : b;
     });
 
-    persistAll({ courses: updated, examBatches: updatedBatches });
-    // Targeted lightweight cloud save to guarantee instant Firestore persistence
-    saveCloudData({ courses: updated, examBatches: updatedBatches });
-    triggerToast(nextActive ? `🟢 "${targetCourse.title}" Activated` : `⚪ "${targetCourse.title}" Deactivated`);
+    handleSaveAllChanges(
+      { courses: updated, examBatches: updatedBatches },
+      nextActive 
+        ? `🟢 "${targetCourse.title}" কোর্সটি এখন ওয়েবসাইটে লাইভ (Active)` 
+        : `⚪ "${targetCourse.title}" কোর্সটি ওয়েবসাইটে বন্ধ/হাইড করা হয়েছে (Inactive)`
+    );
   };
 
   // ==========================================
@@ -6268,6 +6305,19 @@ export default function AdminPanel({ data, onUpdateData, onResetData, onExitAdmi
             )}
           </div>
 
+          {/* Global Master Save Changes Button - Always Visible on All Pages */}
+          <button
+            type="button"
+            onClick={() => handleSaveAllChanges()}
+            disabled={isSaving}
+            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs sm:text-sm shadow-md shadow-emerald-600/30 active:scale-95 transition-all cursor-pointer border-none shrink-0"
+            title="Save all changes live to website"
+          >
+            <Save className={`w-3.5 sm:w-4 h-3.5 sm:h-4 ${isSaving ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{isSaving ? 'সেভ হচ্ছে...' : 'Save Changes (সব সেভ করুন)'}</span>
+            <span className="sm:hidden">{isSaving ? '...' : 'সেভ'}</span>
+          </button>
+
           {/* MatDash User Profile Chip */}
           <div className="flex items-center gap-1.5 sm:gap-2 pl-1 cursor-pointer group">
             <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden ring-2 ring-[#5d5bf6]/20 shrink-0">
@@ -6378,10 +6428,11 @@ export default function AdminPanel({ data, onUpdateData, onResetData, onExitAdmi
               
               {/* TOP TITLE & THREE CANDY PASTEL CARDS */}
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-3">
                   <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                     Dashboard
                   </h2>
+                  {renderTabSaveButton('Save All Changes (সব সেভ করুন)')}
                 </div>
 
                 {/* ULTRA-MINIMAL METRIC STAT CARDS (NO ICONS, NO DUPLICATE LABELS) */}
@@ -7324,6 +7375,7 @@ export default function AdminPanel({ data, onUpdateData, onResetData, onExitAdmi
                   Financial Register & Ledger
                 </h2>
                 <div className="flex items-center gap-2">
+                  {renderTabSaveButton('Save Ledger (সেভ করুন)')}
                   <button
                     type="button"
                     onClick={handleResetAccountingTotals}
@@ -7895,6 +7947,7 @@ export default function AdminPanel({ data, onUpdateData, onResetData, onExitAdmi
 
                   {/* Top Actions: Add User & Export */}
                   <div className="flex items-center gap-2 shrink-0">
+                    {renderTabSaveButton('Save Users (ইউজার সেভ করুন)')}
                     <button
                       type="button"
                       onClick={() => {
@@ -8424,13 +8477,16 @@ export default function AdminPanel({ data, onUpdateData, onResetData, onExitAdmi
                     Manage top promotional banners, titles, and action links on the homepage.
                   </p>
                 </div>
-                <button
-                  onClick={() => setShowAddSlideModal(true)}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs border-none cursor-pointer transition-all shadow-md shadow-blue-500/20"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add New Slide
-                </button>
+                <div className="flex items-center gap-2.5">
+                  {renderTabSaveButton('Save Slides (স্লাইড সেভ করুন)')}
+                  <button
+                    onClick={() => setShowAddSlideModal(true)}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs border-none cursor-pointer transition-all shadow-md shadow-blue-500/20"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add New Slide
+                  </button>
+                </div>
               </div>
 
               {/* Slider Grid */}
@@ -8656,14 +8712,17 @@ export default function AdminPanel({ data, onUpdateData, onResetData, onExitAdmi
           {/* ========================================================= */}
           {activeTab === 'stats' && (
             <div className="space-y-6">
-              <div className="border-b border-slate-200/80 pb-4">
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
-                  <PieChart className="w-6 h-6 text-amber-500" />
-                  Homepage Counters & Announcements
-                </h2>
-                <p className="text-xs text-slate-500">
-                  Manage live metrics counters (students, members) and top announcement notice bar text.
-                </p>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-4">
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
+                    <PieChart className="w-6 h-6 text-amber-500" />
+                    Homepage Counters & Announcements
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Manage live metrics counters (students, members) and top announcement notice bar text.
+                  </p>
+                </div>
+                {renderTabSaveButton('Save Stats & Notice (সেভ করুন)')}
               </div>
 
               {/* Top Banner Notice */}
@@ -8771,6 +8830,8 @@ export default function AdminPanel({ data, onUpdateData, onResetData, onExitAdmi
                     <Download className="w-3.5 h-3.5 text-slate-500" />
                     <span>Export CSV</span>
                   </button>
+
+                  {renderTabSaveButton('Save Leaderboard (সেভ করুন)')}
 
                   <button
                     type="button"
@@ -9942,6 +10003,9 @@ export default function AdminPanel({ data, onUpdateData, onResetData, onExitAdmi
                       <span className="hidden sm:inline">Categories</span>
                     </button>
 
+                    {/* Save Courses Button */}
+                    {renderTabSaveButton('Save Courses (কোর্স সেভ করুন)')}
+
                     {/* Add New Course Button */}
                     <button
                       type="button"
@@ -10501,6 +10565,9 @@ export default function AdminPanel({ data, onUpdateData, onResetData, onExitAdmi
                         </button>
                       </div>
 
+                      {/* Save Bundles Button */}
+                      {renderTabSaveButton('Save Bundles (বান্ডিল সেভ করুন)')}
+
                       {/* Add New Bundle Button */}
                       <button
                         type="button"
@@ -10823,18 +10890,7 @@ export default function AdminPanel({ data, onUpdateData, onResetData, onExitAdmi
                   </p>
                 </div>
                 <div className="flex items-center gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      persistAll({ instructors });
-                      triggerToast('✅ All instructor profiles & faculty changes saved live!');
-                    }}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:brightness-110 text-white font-black text-xs border-none cursor-pointer transition-all shadow-md shadow-emerald-600/20 active:scale-95"
-                    title="Save all changes live"
-                  >
-                    <Save className="w-4 h-4" />
-                    <span>Save All Changes</span>
-                  </button>
+                  {renderTabSaveButton('Save Instructors (শিক্ষক তালিকা সেভ)')}
 
                   <button
                     onClick={() => setShowAddTeacherModal(true)}
@@ -11176,6 +11232,7 @@ export default function AdminPanel({ data, onUpdateData, onResetData, onExitAdmi
                     </div>
 
                     <div className="flex items-center gap-2.5 shrink-0">
+                      {renderTabSaveButton('Save Videos (ভিডিও সেভ করুন)')}
                       <button
                         type="button"
                         onClick={() => {
@@ -11483,13 +11540,16 @@ export default function AdminPanel({ data, onUpdateData, onResetData, onExitAdmi
                     Manage store e-books, study guides, prices, and cover images.
                   </p>
                 </div>
-                <button
-                  onClick={() => setShowAddStoreModal(true)}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs border-none cursor-pointer transition-all shadow-md shadow-emerald-500/20"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add New Book/PDF
-                </button>
+                <div className="flex items-center gap-2.5">
+                  {renderTabSaveButton('Save Store (বই ও স্টোর সেভ)')}
+                  <button
+                    onClick={() => setShowAddStoreModal(true)}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs border-none cursor-pointer transition-all shadow-md shadow-emerald-500/20"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add New Book/PDF
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -11588,17 +11648,7 @@ export default function AdminPanel({ data, onUpdateData, onResetData, onExitAdmi
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                     Live Sync Active
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      persistAll({ siteSettings, sectionTexts });
-                      triggerToast('✅ All settings & payment accounts saved live!');
-                    }}
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:brightness-110 text-white text-xs font-black border-none cursor-pointer shadow-sm shadow-emerald-600/20 flex items-center gap-1.5 transition-all active:scale-95"
-                  >
-                    <Save className="w-4 h-4" />
-                    <span>Save All Settings</span>
-                  </button>
+                  {renderTabSaveButton('Save Settings (সেটিংস সেভ করুন)')}
                 </div>
               </div>
 
@@ -12129,6 +12179,7 @@ export default function AdminPanel({ data, onUpdateData, onResetData, onExitAdmi
                     Modify section headings, badges, and button text live across the homepage.
                   </p>
                 </div>
+                {renderTabSaveButton('Save All Texts (টেক্সট সেভ করুন)')}
               </div>
 
               {/* Sub-Navigation Pills Bar */}
@@ -12605,13 +12656,16 @@ export default function AdminPanel({ data, onUpdateData, onResetData, onExitAdmi
                     Add, edit, or remove feature cards displayed in the homepage 'Why Choose Us' section.
                   </p>
                 </div>
-                <button
-                  onClick={() => setShowAddWhyModal(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-xs font-bold border-none cursor-pointer shadow-md shadow-blue-500/20"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>+ Add New Card</span>
-                </button>
+                <div className="flex items-center gap-2.5">
+                  {renderTabSaveButton('Save Cards (কার্ড সেভ করুন)')}
+                  <button
+                    onClick={() => setShowAddWhyModal(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-xs font-bold border-none cursor-pointer shadow-md shadow-blue-500/20"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>+ Add New Card</span>
+                  </button>
+                </div>
               </div>
 
               {/* Cards Grid */}
@@ -12752,6 +12806,7 @@ export default function AdminPanel({ data, onUpdateData, onResetData, onExitAdmi
                         <RotateCcw className="w-3.5 h-3.5" />
                         <span>Reset Template</span>
                       </button>
+                      {renderTabSaveButton('Save Policies (পলিসি সেভ করুন)')}
                     </div>
                   </div>
 
