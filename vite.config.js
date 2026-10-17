@@ -1,0 +1,51 @@
+import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+  oxc: {
+    drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : []
+  },
+  server: {
+    port: 5174,
+    watch: {
+      ignored: [
+        '**/English Master 50/**',
+        '**/GK Full Course 26/**',
+        '**/Medilogy English & GK/**',
+        '**/RTDS Questions/**',
+        '**/SureShot SecondTimer Carnival/**',
+        '**/public/exams_data/**',
+        '**/exams_data/**',
+      ],
+    },
+    proxy: {
+      '/api-bunny-stream': {
+        target: 'https://video.bunnycdn.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api-bunny-stream/, '')
+      },
+      '/api-bunny-storage': {
+        target: 'https://storage.bunnycdn.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api-bunny-storage/, '')
+      }
+    },
+  },
+  build: {
+    chunkSizeWarningLimit: 800,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/lucide-react')) {
+            return 'vendor-icons';
+          }
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+            return 'vendor-react';
+          }
+        }
+      }
+    }
+  }
+})

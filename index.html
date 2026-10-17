@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+    <title>Technical Home | আধুনিক এডটেক ও স্কিল ডেভেলপমেন্ট প্ল্যাটফর্ম</title>
+    <!-- Google Fonts: Hind Siliguri & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Tailwind CSS with class-based dark mode -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              'primary-navy': '#0a1128',
+              'navy-dark': '#030712',
+              'navy-card': '#0d1830',
+              'navy-border': '#1e293b',
+              'primary-charcoal': '#111827',
+              'neutral-text': '#4b5563',
+              'neutral-warm': '#f3f4f6',
+              'neutral-border': '#e5e7eb',
+              'primary-blue': '#2563eb',
+              'accent-cyan': '#06b6d4',
+            },
+            fontFamily: {
+              sans: ['Hind Siliguri', 'Inter', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+    <meta name="theme-color" content="#030712" />
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+      }
+      html.dark, html.dark body {
+        background-color: #030712 !important;
+        background-image: 
+          radial-gradient(at 0% 0%, rgba(30, 58, 138, 0.25) 0px, transparent 50%),
+          radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.16) 0px, transparent 50%),
+          radial-gradient(at 50% 100%, rgba(29, 78, 216, 0.22) 0px, transparent 50%) !important;
+        background-repeat: no-repeat !important;
+        background-position: center top !important;
+        background-size: cover !important;
+        background-attachment: fixed !important;
+        color: #ffffff;
+      }
+      @media (max-width: 768px) {
+        html.dark, html.dark body {
+          background-image: 
+            radial-gradient(at 0% 0%, rgba(30, 58, 138, 0.3) 0px, transparent 55%),
+            radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.18) 0px, transparent 55%) !important;
+          background-size: cover !important;
+          background-position: center top !important;
+          background-attachment: fixed !important;
+        }
+      }
+      #root {
+        background-color: transparent !important;
+        min-height: 100vh;
+      }
+    </style>
+    <script>
+      // Apply saved theme immediately and enforce black canvas to prevent white flash
+      try {
+        const savedTheme = localStorage.getItem('technicalhome_theme') || 'dark';
+        if (savedTheme === 'dark') {
+          document.documentElement.classList.add('dark');
+          document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+          document.documentElement.classList.add('light');
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      } catch (e) {
+        document.documentElement.classList.add('dark');
+      }
+    </script>
+  </head>
+  <body style="margin: 0; padding: 0;">
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
